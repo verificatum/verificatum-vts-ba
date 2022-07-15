@@ -1,0 +1,28 @@
+{
+    "name": "@verificatum/verificatum-vts-ba",
+    "version": "1.0.0",
+    "description": "Verificatum TypeScript Big Integer library",
+    "private": true,
+    "type": "module",
+    "workspaces": [
+        "packages/*"
+    ],
+    "scripts": {
+        "build": "tsc --build",
+        "lint": "eslint src/**/*.ts"
+    },
+    "devDependencies": {
+        "@types/node": "^16.11.21",
+        "@typescript-eslint/eslint-plugin": "^5.10.2",
+        "@typescript-eslint/parser": "^5.10.2",
+        "eslint": "^8.8.0",
+        "eslint-plugin-tsdoc": "^0.2.14",
+	"eslint-plugin-sonarjs": "0.13.0",
+        "typedoc": "^0.22.15",
+	"js-beautify": "1.14.3"
+    },
+    "author": "Douglas Wikstrom",
+    "license": "MIT",
+    "homepage": "https://github.com/verificatum/verificatum-vts-ba",
+    "bugs": "https://github.com/verificatum/verificatum-vts-ba/issues"
+}

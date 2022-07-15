@@ -1,0 +1,1528 @@
+
+// Copyright 2008-2022 Douglas Wikstrom
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use, copy,
+// modify, merge, publish, distribute, sublicense, and/or sell copies
+// of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+// BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+// ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+// CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+export namespace verificatum {
+
+    export namespace dev {
+
+        export namespace test {
+
+            export namespace arithm {
+                import FixModPow = verificatum.arithm.FixModPow;
+                import LI = verificatum.arithm.LI;
+                import ModPowAlg = verificatum.arithm.ModPowAlg;
+                import ModPowProd = verificatum.arithm.ModPowProd;
+                import WORDSIZE = verificatum.arithm.uli.WORDSIZE;
+                import add = verificatum.arithm.uli.add;
+                import cmp = verificatum.arithm.uli.cmp;
+                import div3by2 = verificatum.arithm.uli.div3by2;
+                import div_qr = verificatum.arithm.uli.div_qr;
+                import hex = verificatum.arithm.uli.hex;
+                import iszero = verificatum.arithm.uli.iszero;
+                import msword = verificatum.arithm.uli.msword;
+                import mul = verificatum.arithm.uli.mul;
+                import mul_mont = verificatum.arithm.li.mul_mont;
+                import neg = verificatum.arithm.uli.neg;
+                import neginvm_mont = verificatum.arithm.li.neginvm_mont;
+                import newarray = verificatum.arithm.uli.newarray;
+                import normalize = verificatum.arithm.uli.normalize;
+                import reciprocal_word = verificatum.arithm.uli.reciprocal_word;
+                import reciprocal_word_3by2 = verificatum.arithm.uli.reciprocal_word_3by2;
+                import set = verificatum.arithm.uli.set;
+                import sub = verificatum.arithm.uli.sub;
+
+                // Small primes useful for testing.
+                export const small_primes: uint32_t[] = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541, 547, 557, 563, 569, 571, 577, 587, 593, 599, 601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677, 683, 691, 701, 709, 719, 727, 733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877, 881, 883, 887, 907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997, 1009, 1013, 1019, 1021, 1031, 1033, 1039, 1049, 1051, 1061, 1063, 1069, 1087, 1091, 1093, 1097, 1103, 1109, 1117, 1123, 1129, 1151, 1153, 1163, 1171, 1181, 1187, 1193, 1201, 1213, 1217, 1223, 1229, 1231, 1237, 1249, 1259, 1277, 1279, 1283, 1289, 1291, 1297, 1301, 1303, 1307, 1319, 1321, 1327, 1361, 1367, 1373, 1381, 1399, 1409, 1423, 1427, 1429, 1433, 1439, 1447, 1451, 1453, 1459, 1471, 1481, 1483, 1487, 1489, 1493, 1499, 1511, 1523, 1531, 1543, 1549, 1553, 1559, 1567, 1571, 1579, 1583, 1597, 1601, 1607, 1609, 1613, 1619, 1621, 1627, 1637, 1657, 1663, 1667, 1669, 1693, 1697, 1699, 1709, 1721, 1723, 1733, 1741, 1747, 1753, 1759, 1777, 1783, 1787, 1789, 1801, 1811, 1823, 1831, 1847, 1861, 1867, 1871, 1873, 1877, 1879, 1889, 1901, 1907, 1913, 1931, 1933, 1949, 1951, 1973, 1979, 1987, 1993, 1997, 1999, 2003, 2011, 2017, 2027, 2029, 2039, 2053, 2063, 2069, 2081, 2083, 2087, 2089, 2099, 2111, 2113, 2129, 2131, 2137, 2141, 2143, 2153, 2161, 2179, 2203, 2207, 2213, 2221, 2237, 2239, 2243, 2251, 2267, 2269, 2273, 2281, 2287, 2293, 2297, 2309, 2311, 2333, 2339, 2341, 2347, 2351, 2357, 2371, 2377, 2381, 2383, 2389, 2393, 2399, 2411, 2417, 2423, 2437, 2441, 2447, 2459, 2467, 2473, 2477, 2503, 2521, 2531, 2539, 2543, 2549, 2551, 2557, 2579, 2591, 2593, 2609, 2617, 2621, 2633, 2647, 2657, 2659, 2663, 2671, 2677, 2683, 2687, 2689, 2693, 2699, 2707, 2711, 2713, 2719, 2729, 2731, 2741, 2749, 2753, 2767, 2777, 2789, 2791, 2797, 2801, 2803, 2819, 2833, 2837, 2843, 2851, 2857, 2861, 2879, 2887, 2897, 2903, 2909, 2917, 2927, 2939, 2953, 2957, 2963, 2969, 2971, 2999, 3001, 3011, 3019, 3023, 3037, 3041, 3049, 3061, 3067, 3079, 3083, 3089, 3109, 3119, 3121, 3137, 3163, 3167, 3169, 3181, 3187, 3191, 3203, 3209, 3217, 3221, 3229, 3251, 3253, 3257, 3259, 3271, 3299, 3301, 3307, 3313, 3319, 3323, 3329, 3331, 3343, 3347, 3359, 3361, 3371, 3373, 3389, 3391, 3407, 3413, 3433, 3449, 3457, 3461, 3463, 3467, 3469, 3491, 3499, 3511, 3517, 3527, 3529, 3533, 3539, 3541, 3547, 3557, 3559, 3571, 3581, 3583, 3593, 3607, 3613, 3617, 3623, 3631, 3637, 3643, 3659, 3671, 3673, 3677, 3691, 3697, 3701, 3709, 3719, 3727, 3733, 3739, 3761, 3767, 3769, 3779, 3793, 3797, 3803, 3821, 3823, 3833, 3847, 3851, 3853, 3863, 3877, 3881, 3889, 3907, 3911, 3917, 3919, 3923, 3929, 3931, 3943, 3947, 3967, 3989, 4001, 4003, 4007, 4013, 4019, 4021, 4027, 4049, 4051, 4057, 4073, 4079, 4091, 4093, 4099, 4111, 4127, 4129, 4133, 4139, 4153, 4157, 4159, 4177, 4201, 4211, 4217, 4219, 4229, 4231, 4241, 4243, 4253, 4259, 4261, 4271, 4273, 4283, 4289, 4297, 4327, 4337, 4339, 4349, 4357, 4363, 4373, 4391, 4397, 4409, 4421, 4423, 4441, 4447, 4451, 4457, 4463, 4481, 4483, 4493, 4507, 4513, 4517, 4519, 4523, 4547, 4549, 4561, 4567, 4583, 4591, 4597, 4603, 4621, 4637, 4639, 4643, 4649, 4651, 4657, 4663, 4673, 4679, 4691, 4703, 4721, 4723, 4729, 4733, 4751, 4759, 4783, 4787, 4789, 4793, 4799, 4801, 4813, 4817, 4831, 4861, 4871, 4877, 4889, 4903, 4909, 4919, 4931, 4933, 4937, 4943, 4951, 4957, 4967, 4969, 4973, 4987, 4993, 4999, 5003, 5009, 5011, 5021, 5023, 5039, 5051, 5059, 5077, 5081, 5087, 5099, 5101, 5107, 5113, 5119, 5147, 5153, 5167, 5171, 5179, 5189, 5197, 5209, 5227, 5231, 5233, 5237, 5261, 5273, 5279, 5281, 5297, 5303, 5309, 5323, 5333, 5347, 5351, 5381, 5387, 5393, 5399, 5407, 5413, 5417, 5419, 5431, 5437, 5441, 5443, 5449, 5471, 5477, 5479, 5483, 5501, 5503, 5507, 5519, 5521, 5527, 5531, 5557, 5563, 5569, 5573, 5581, 5591, 5623, 5639, 5641, 5647, 5651, 5653, 5657, 5659, 5669, 5683, 5689, 5693, 5701, 5711, 5717, 5737, 5741, 5743, 5749, 5779, 5783, 5791, 5801, 5807, 5813, 5821, 5827, 5839, 5843, 5849, 5851, 5857, 5861, 5867, 5869, 5879, 5881, 5897, 5903, 5923, 5927, 5939, 5953, 5981, 5987, 6007, 6011, 6029, 6037, 6043, 6047, 6053, 6067, 6073, 6079, 6089, 6091, 6101, 6113, 6121, 6131, 6133, 6143, 6151, 6163, 6173, 6197, 6199, 6203, 6211, 6217, 6221, 6229, 6247, 6257, 6263, 6269, 6271, 6277, 6287, 6299, 6301, 6311, 6317, 6323, 6329, 6337, 6343, 6353, 6359, 6361, 6367, 6373, 6379, 6389, 6397, 6421, 6427, 6449, 6451, 6469, 6473, 6481, 6491, 6521, 6529, 6547, 6551, 6553, 6563, 6569, 6571, 6577, 6581, 6599, 6607, 6619, 6637, 6653, 6659, 6661, 6673, 6679, 6689, 6691, 6701, 6703, 6709, 6719, 6733, 6737, 6761, 6763, 6779, 6781, 6791, 6793, 6803, 6823, 6827, 6829, 6833, 6841, 6857, 6863, 6869, 6871, 6883, 6899, 6907, 6911, 6917, 6947, 6949, 6959, 6961, 6967, 6971, 6977, 6983, 6991, 6997, 7001, 7013, 7019, 7027, 7039, 7043, 7057, 7069, 7079, 7103, 7109, 7121, 7127, 7129, 7151, 7159, 7177, 7187, 7193, 7207, 7211, 7213, 7219, 7229, 7237, 7243, 7247, 7253, 7283, 7297, 7307, 7309, 7321, 7331, 7333, 7349, 7351, 7369, 7393, 7411, 7417, 7433, 7451, 7457, 7459, 7477, 7481, 7487, 7489, 7499, 7507, 7517, 7523, 7529, 7537, 7541, 7547, 7549, 7559, 7561, 7573, 7577, 7583, 7589, 7591, 7603, 7607, 7621, 7639, 7643, 7649, 7669, 7673, 7681, 7687, 7691, 7699, 7703, 7717, 7723, 7727, 7741, 7753, 7757, 7759, 7789, 7793, 7817, 7823, 7829, 7841, 7853, 7867, 7873, 7877, 7879, 7883, 7901, 7907, 7919];
+
+                // Large safe primes useful for testing.
+                export const safe_primes: string[] = [
+                    "01970e2e8a60c345b31d85debed9053ad61e15a0a87fca07114bcc330fdfa7c49f",
+                    "02f62ad5c74210285fb6ec7a06d664d88e1ef3ed9066b9857121c3b4ee8c7c1987",
+                    "0768e94e55eba37f8243003c231a205482b46db046f17e4ad7c064bf6f8811903b",
+                    "0d4395e7da60f2bb28709184870547cbbc948fb1e67a3923f44cc1d297170e9787"
+                ];
+
+                const liprefix: string = "verificatum.arithm.uli";
+
+                const MASK_ALL: word_t = (1 << WORDSIZE) - 1;
+                const MASK_ALL_2: [word_t, word_t, word_t] = [MASK_ALL, MASK_ALL, 0];
+                const MASK_ALL_3: [word_t, word_t, word_t] = [MASK_ALL, MASK_ALL, MASK_ALL];
+
+                function INSECURErandom_uli_t(bitLength: size_t) {
+
+                    const noWords: size_t =
+                          Math.floor((bitLength + 28 - 1) / 28);
+                    const zeroBits: size_t = noWords * 28 - bitLength;
+
+                    const x: uli_t = [];
+                    for (let i: size_t = 0; i < noWords; i++) {
+                        x[i] = Math.floor(Math.random() * 0x10000000);
+                        x[i] &= 0xfffffff;
+                    }
+                    x[x.length - 1] &= 0xfffffff >>> zeroBits;
+                    normalize(x);
+
+                    return x;
+                }
+
+                export function test_twos_negation(tc: TestContext): void {
+                    const endTime: size_t =
+                          tc.start([liprefix + " (negation in two's complement)"], tc.testTime);
+
+                    // This is exhaustive.
+                    let i: size_t = 1;
+                    const s: size_t = 100;
+                    while (!tc.done(endTime)) {
+                        const x: uli_t = INSECURErandom_uli_t(i);
+
+                        const y: uli_t = [];
+                        y.length = x.length + 1;
+
+                        const z: uli_t = [];
+                        z.length = x.length + 1;
+
+                        neg(y, x);
+                        add(z, x, y);
+
+                        if (!iszero(z)) {
+                            tc.error("Negation failed!" +
+                                     "\nx = 0x" + hex(x) +
+                                     "\ny = 0x" + hex(y) +
+                                     "\nz = 0x" + hex(z));
+                        }
+
+                        if (i == s) {
+                            i = 1;
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_neginvm_mont(tc: TestContext): void {
+                    let ex: string = "";
+                    if (WORDSIZE < 22) {
+                        ex = " - exhaustive";
+                    }
+                    tc.start([liprefix + ` (neginvm_mont${ex})`], tc.testTime);
+
+                    // tpw = 2^28
+                    const tpw: uli_t = [0x0, 0x1];
+
+                    const nw: uli_t = [0, 0];
+                    const m: uli_t = [0];
+                    const w: uli_t = [0];
+                    const p: uli_t = newarray(m.length + tpw.length + 2);
+                    const q: uli_t = newarray(Math.max(0, m.length - tpw.length) + 1);
+
+                    // This is exhaustive when WORDSIZE < 2^20. Compile with
+                    // WORDSIZE=20 to run it this way.
+                    const max_m0: size_t = 1 << Math.min(20, WORDSIZE);
+
+                    for (let m0: word_t = 1; m0 < max_m0; m0 += 2) {
+
+                        // m = m0 mod 2^28
+                        m[0] = m0;
+
+                        // w = -m^(-1) mod m
+                        const w0: word_t = neginvm_mont(m);
+                        w[0] = w0;
+
+                        // nw = m^(-1) mod 2^28
+                        sub(nw, tpw, w)
+
+                        // p = m * m^(-1)
+                        mul(p, m, nw);
+
+                        // p = p mod 2^28
+                        div_qr(q, p, tpw);
+
+                        // -m^(-1) * m = 1 mod 2^28
+                        if (cmp(p, [1]) != 0) {
+                            tc.error("Incorrect Montgomery inverse!" +
+                                     "\nb = 0x" + hex(tpw) +
+                                     "\nm = 0x" + hex(m) +
+                                     "\nw = 0x" + hex(w));
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_reciprocal_word(tc: TestContext): void {
+                    tc.start([liprefix + " (reciprocal_word - exhaustive)"], tc.testTime);
+
+                    const d: uli_t = [0];
+                    const v: uli_t = [0, 0];
+                    const p: uli_t = [0, 0, 0];
+                    const r: uli_t = [0, 0, 0];
+
+                    // This is exhaustive.
+                    let i: word_t = 0;
+                    while (i < (1 << (WORDSIZE - 1))) {
+
+                        d[0] = i;
+                        d[0] |= (1 << (WORDSIZE - 1));
+
+                        // 2by1 reciprocal of d.
+                        v[0] = reciprocal_word(d[0]);
+
+                        // Add 2**WORDSIZE.
+                        v[1] = 1;
+
+                        // Check that the reciprocal is in the right interval by
+                        // using it.
+
+                        // p = (v + 2^WORDSIZE) * d
+                        mul(p, v, d);
+
+                        // 2^(2 * WORDSIZE) - 1 - p
+                        sub(r, MASK_ALL_2, p);
+                        if (cmp(r, d) >= 0) {
+                            tc.error("Too small reciprocal!" +
+                                     "\nd = 0x" + hex(d) +
+                                     "\nr = 0x" + hex(r) +
+                                     "\nv = " + v[0]);
+                        }
+                        i++;
+                    }
+                    tc.end();
+                }
+
+                export function test_reciprocal_word_3by2(tc: TestContext): void {
+                    const endTime: size_t =
+                          tc.start([liprefix + " (reciprocal_word_3by2)"], tc.testTime);
+
+                    const v: uli_t = [0, 0];
+                    const p: uli_t = [0, 0, 0, 0];
+                    const r: uli_t = [0, 0, 0, 0];
+
+                    while (!tc.done(endTime)) {
+
+                        // Divisor with leading bit set.
+                        const d: uli_t = INSECURErandom_uli_t(2 * WORDSIZE);
+                        d[1] |= (1 << (WORDSIZE - 1));
+
+                        // 3by2 reciprocal of d.
+                        v[0] = reciprocal_word_3by2(d);
+
+                        // Add 2**(2 * WORDSIZE).
+                        v[1] = 1;
+
+                        // Check that the reciprocal is in the right interval by
+                        // using it.
+
+                        // p = (v + 2^(2 * WORDSIZE)) * d
+                        mul(p, v, d);
+
+                        // 2^(3 * WORDSIZE) - 1 - p
+                        sub(r, MASK_ALL_3, p);
+                        if (cmp(r, d) >= 0) {
+                            tc.error("Too small reciprocal!" +
+                                     "\nd = 0x" + hex(d) +
+                                     "\nr = 0x" + hex(r) +
+                                     "\nv = " + v[0]);
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_div3by2(tc: TestContext): void {
+                    const endTime: size_t = tc.start([liprefix + " (div3by2)"], tc.testTime);
+
+                    let d: uli_t;
+                    let u: uli_t;
+                    let v: word_t;
+                    let q: word_t;
+                    const p: uli_t = [0, 0, 0, 0];
+                    const r: uli_t = [0, 0];
+
+                    // Negative of d in two's complement.
+                    const neg_d: uli_t = [0, 0];
+
+                    while (!tc.done(endTime)) {
+                        do {
+
+                            // Divisor with leading bit set.
+                            d = INSECURErandom_uli_t(2 * WORDSIZE);
+                            d[1] |= (1 << (WORDSIZE - 1));
+
+                            // Dividend such that u < 2^WORDSIZE * d
+                            u = INSECURErandom_uli_t(3 * WORDSIZE);
+
+                        } while (u[2] >= d[1] ||
+                                 (u[2] == d[1] && u[1] >= d[0]));
+
+                        sub(neg_d, [0, 0], d);
+
+                        // Reciprocal.
+                        v = reciprocal_word_3by2(d);
+                        q = div3by2(r, u, d, neg_d, v);
+
+                        if (cmp(r, d) >= 0) {
+                            tc.error("Too small reciprocal!" +
+                                     "\nu = 0x" + hex(u) +
+                                     "\nd = 0x" + hex(d) +
+                                     "\nq = " + q +
+                                     "\nr = 0x" + hex(r));
+                        }
+
+                        mul(p, [q], d);
+                        add(p, p, r);
+                        if (cmp(p, u) !== 0) {
+                            tc.error("Numbers do not add up!" +
+                                     "\nu = 0x" + hex(u) +
+                                     "\nd = 0x" + hex(d) +
+                                     "\nq = " + q +
+                                     "\nr = 0x" + hex(r));
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_uli(tc: TestContext): void {
+                    test_twos_negation(tc);
+                    test_reciprocal_word(tc);
+                    test_reciprocal_word_3by2(tc);
+                    test_div3by2(tc);
+                    test_neginvm_mont(tc);
+                }
+
+                const LIprefix: string = "verificatum.arithm.LI";
+
+                export function test_identities(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t = tc.start([LIprefix + " (identities)"], tc.testTime);
+
+                    const ONE: LI = LI.ONE;
+                    const ZERO: LI = LI.ZERO;
+
+                    if (!ONE.add(ZERO).equals(ONE)
+                        || !ZERO.add(ONE).equals(ONE)
+                        || !ZERO.add(ZERO).equals(ZERO)) {
+                        tc.error("Ones and zeros don't add!");
+                    }
+
+                    if (!ONE.mul(ZERO).equals(ZERO)
+                        || !ZERO.mul(ONE).equals(ZERO)
+                        || !ZERO.mul(ZERO).equals(ZERO)
+                        || !ONE.mul(ONE).equals(ONE)) {
+                        tc.error("Ones and zeros don't multiply!");
+                    }
+
+                    let i: size_t = 1;
+                    while (!tc.done(endTime)) {
+
+                        // We test both positive and negative integers.
+                        for (let j: size_t = 0; j < 2; j++) {
+
+                            // Operations with zero and one.
+                            let x: LI = new LI(i, tc.randomSource);
+                            if (j & 0x1) {
+                                x = x.neg();
+                            }
+
+                            let a: LI = ZERO.add(x);
+                            let b: LI = x.add(ZERO);
+                            if (!a.equals(x) || !b.equals(x)) {
+                                e = "Addition with zero is not identity!"
+                                    + "\nx = 0x" + x.toHexString()
+                                    + "\n0 + x = 0x" + a.toHexString()
+                                    + "\nx + 0 = 0x" + b.toHexString();
+                                tc.error(e);
+                            }
+
+                            a = ONE.mul(x);
+                            b = x.mul(ONE);
+                            if (!a.equals(x) || !b.equals(x)) {
+                                e = "Multiplication with one is not identity!"
+                                    + "\nx = 0x" + x.toHexString()
+                                    + "\n1 * x = 0x" + a.toHexString()
+                                    + "\nx * 1 = 0x" + b.toHexString();
+                                tc.error(e);
+                            }
+                        }
+                        i++;
+                    }
+                    tc.end();
+                }
+
+                export function test_addition_commutativity(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t =
+                          tc.start([LIprefix + " (addition commutativity)"], tc.testTime);
+
+                    const s: size_t = 100;
+                    while (!tc.done(endTime)) {
+                        let i: size_t = 1;
+                        while (!tc.done(endTime) && i < s) {
+                            let j: size_t = 1;
+                            while (!tc.done(endTime) && j < s) {
+
+                                // We try all combinations of signs.
+                                for (let k: size_t = 0; k < 4; k++) {
+                                    let x: LI = new LI(i, tc.randomSource);
+                                    if (k & 0x1) {
+                                        x = x.neg();
+                                    }
+                                    let y: LI = new LI(j, tc.randomSource);
+                                    if (k & 0x2) {
+                                        y = y.neg();
+                                    }
+
+                                    const a: LI = x.add(y);
+                                    const b: LI = y.add(x);
+
+                                    if (!a.equals(b)) {
+                                        e = "Addition is not commutative!"
+                                            + "\nx = 0x" + x.toHexString()
+                                            + "\ny = 0x" + y.toHexString()
+                                            + "\na = 0x" + a.toHexString()
+                                            + "\nb = 0x" + b.toHexString();
+                                        tc.error(e);
+                                    }
+                                }
+                                j++;
+                            }
+                            i++;
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_addition_associativity(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t =
+                          tc.start([LIprefix + " (addition associativity)"], tc.testTime);
+
+                    const s: size_t = 100;
+                    while (!tc.done(endTime)) {
+                        let i: size_t = 1;
+                        while (!tc.done(endTime) && i < s) {
+                            let j: size_t = 1;
+                            while (!tc.done(endTime) && j < s) {
+                                let k: size_t = 1;
+                                while (!tc.done(endTime) && k < s) {
+
+                                    // We try all combinations of signs.
+                                    for (let l: size_t = 0; l < 8; l++) {
+                                        let x: LI = new LI(i, tc.randomSource);
+                                        if (l & 0x1) {
+                                            x = x.neg();
+                                        }
+                                        let y: LI = new LI(j, tc.randomSource);
+                                        if (l & 0x2) {
+                                            y = y.neg();
+                                        }
+                                        let z: LI = new LI(k, tc.randomSource);
+                                        if (l & 0x4) {
+                                            z = z.neg();
+                                        }
+
+                                        const a: LI = (x.add(y)).add(z);
+                                        const b: LI = x.add(y.add(z));
+
+                                        if (!a.equals(b)) {
+                                            e = "Addition is not associative!"
+                                                + "\nx = 0x" + x.toHexString()
+                                                + "\ny = 0x" + y.toHexString()
+                                                + "\nz = 0x" + z.toHexString()
+                                                + "\na = 0x" + a.toHexString()
+                                                + "\nb = 0x" + b.toHexString();
+                                            tc.error(e);
+                                        }
+                                    }
+                                    k++;
+                                }
+                                j++;
+                            }
+                            i++;
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_multiplication_commutativity(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t =
+                          tc.start([LIprefix + " (multiplication commutativity)"], tc.testTime);
+
+                    const s: size_t = 100;
+                    while (!tc.done(endTime)) {
+                        let i: size_t = 1;
+                        while (!tc.done(endTime) && i < s) {
+                            let j: size_t = 1;
+                            while (!tc.done(endTime) && j < s) {
+
+                                // We try all combinations of signs.
+                                for (let k: size_t = 0; k < 4; k++) {
+                                    let x: LI = new LI(i, tc.randomSource);
+                                    if (k & 0x1) {
+                                        x = x.neg();
+                                    }
+                                    let y: LI = new LI(j, tc.randomSource);
+                                    if (k & 0x2) {
+                                        y = y.neg();
+                                    }
+
+                                    const a: LI = x.mul(y);
+                                    const b: LI = y.mul(x);
+
+                                    if (!a.equals(b)) {
+                                        e = "Multiplication is not commutative!"
+                                            + "\nx = 0x" + x.toHexString()
+                                            + "\ny = 0x" + y.toHexString()
+                                            + "\na = 0x" + a.toHexString()
+                                            + "\nb = 0x" + b.toHexString();
+                                        tc.error(e);
+                                    }
+                                }
+                                j++;
+                            }
+                            i++;
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_squaring(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t = tc.start([LIprefix + " (squaring)"], tc.testTime);
+
+                    const s: size_t = 100;
+                    let i: size_t = 1;
+                    while (!tc.done(endTime)) {
+
+                        // We try all combinations of signs.
+                        for (let k: size_t = 0; k < 1; k++) {
+                            let x: LI = new LI(i, tc.randomSource);
+                            if (k & 0x1) {
+                                x = x.neg();
+                            }
+
+                            const y: LI = x.mul(LI.ONE);
+                            const a: LI = x.square();
+                            const b: LI = x.mul(y);
+
+                            if (!a.equals(b)) {
+                                e = "Squaring is inconsistent with multiplication!"
+                                    + "\nx = 0x" + x.toHexString()
+                                    + "\na = 0x" + a.toHexString()
+                                    + "\nb = 0x" + b.toHexString();
+                                tc.error(e);
+                            }
+                        }
+                        i = ((i + 1) % s) + 1;
+                    }
+                    tc.end();
+                }
+
+                export function test_multiplication_associativity(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t =
+                          tc.start([LIprefix + " (multiplication associativity)"], tc.testTime);
+
+                    const s: size_t = 100;
+                    while (!tc.done(endTime)) {
+                        let i: size_t = 1;
+                        while (!tc.done(endTime) && i < s) {
+                            let j: size_t = 1;
+                            while (!tc.done(endTime) && j < s) {
+                                let k: size_t = 1;
+                                while (!tc.done(endTime) && k < s) {
+
+                                    // We try all combinations of signs.
+                                    for (let l: size_t = 0; l < 8; l++) {
+                                        let x: LI = new LI(i, tc.randomSource);
+                                        if (l & 0x1) {
+                                            x = x.neg();
+                                        }
+                                        let y: LI = new LI(j, tc.randomSource);
+                                        if (l & 0x2) {
+                                            y = y.neg();
+                                        }
+                                        let z: LI = new LI(k, tc.randomSource);
+                                        if (l & 0x4) {
+                                            z = z.neg();
+                                        }
+
+                                        const a: LI = (x.mul(y)).mul(z);
+                                        const b: LI = x.mul(y.mul(z));
+
+                                        if (!a.equals(b)) {
+                                            e = "Multiplication is not associative!"
+                                                + "\nx = 0x" + x.toHexString()
+                                                + "\ny = 0x" + y.toHexString()
+                                                + "\nz = 0x" + z.toHexString()
+                                                + "\na = 0x" + a.toHexString()
+                                                + "\nb = 0x" + b.toHexString();
+                                            tc.error(e);
+                                        }
+                                    }
+                                    k++;
+                                }
+                                j++;
+                            }
+                            i++;
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_distributivity(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t =
+                          tc.start([LIprefix + " (distributivity)"], tc.testTime);
+
+                    const s: size_t = 100;
+                    while (!tc.done(endTime)) {
+                        let i: size_t = 1;
+                        while (!tc.done(endTime) && i < s) {
+                            let j: size_t = 1;
+                            while (!tc.done(endTime) && j < s) {
+                                let k: size_t = 1;
+                                while (!tc.done(endTime) && k < s) {
+
+                                    // We try all combinations of signs.
+                                    for (let l: size_t = 0; l < 8; l++) {
+                                        let x: LI = new LI(i, tc.randomSource);
+                                        if (l & 0x1) {
+                                            x = x.neg();
+                                        }
+                                        let y: LI = new LI(j, tc.randomSource);
+                                        if (l & 0x2) {
+                                            y = y.neg();
+                                        }
+                                        let z: LI = new LI(k, tc.randomSource);
+                                        if (l & 0x4) {
+                                            z = z.neg();
+                                        }
+
+                                        const a: LI = x.mul(y.add(z));
+                                        const b: LI = x.mul(y).add(x.mul(z));
+
+                                        if (!a.equals(b)) {
+                                            e = "Multiplication and addition are not "
+                                                + "transitive!"
+                                                + "\nx = 0x" + x.toHexString()
+                                                + "\ny = 0x" + y.toHexString()
+                                                + "\nz = 0x" + z.toHexString()
+                                                + "\na = 0x" + a.toHexString()
+                                                + "\nb = 0x" + b.toHexString();
+                                            tc.error(e);
+                                        }
+                                    }
+                                    k++;
+                                }
+                                j++;
+                            }
+                            i++;
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_division_with_zero_remainder(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t =
+                          tc.start([LIprefix + " (division without remainder)"], tc.testTime);
+
+                    const s: size_t = 100;
+                    while (!tc.done(endTime)) {
+                        let i: size_t = 1;
+                        while (!tc.done(endTime) && i < s) {
+                            let j: size_t = 1;
+                            while (!tc.done(endTime) && j < s) {
+
+                                const x: LI = new LI(i, tc.randomSource);
+                                let y: LI = new LI(j, tc.randomSource);
+                                while (y.iszero()) {
+                                    y = new LI(j, tc.randomSource);
+                                }
+
+                                const p: LI = x.mul(y);
+                                const q: LI = p.div(y);
+
+                                if (!q.equals(x)) {
+                                    e = "Division with zero remainder failed!"
+                                        + "\nx = 0x" + x.toHexString()
+                                        + "\ny = 0x" + y.toHexString()
+                                        + "\np = 0x" + p.toHexString()
+                                        + "\nq = 0x" + q.toHexString();
+                                    tc.error(e);
+                                }
+                                j++;
+                            }
+                            i++;
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_division_with_remainder(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t =
+                          tc.start([LIprefix + " (division with remainder)"], tc.testTime);
+
+                    const s: size_t = 100;
+                    while (!tc.done(endTime)) {
+                        let i: size_t = 1;
+                        while (!tc.done(endTime) && i < s) {
+                            let j: size_t = 1;
+                            while (!tc.done(endTime) && j < s) {
+
+                                const x: LI = new LI(i, tc.randomSource);
+                                let y: LI = new LI(j, tc.randomSource);
+                                while (y.iszero()) {
+                                    y = new LI(j, tc.randomSource);
+                                }
+
+                                const q: LI = x.div(y);
+                                const r: LI = x.mod(y);
+                                const xx: LI = q.mul(y).add(r);
+
+                                if (!xx.equals(x)) {
+                                    e = "Division with remainder failed!"
+                                        + "\nx = 0x" + x.toHexString()
+                                        + "\ny = 0x" + y.toHexString()
+                                        + "\nq = 0x" + q.toHexString()
+                                        + "\nr = 0x" + r.toHexString()
+                                        + "\nxx = 0x" + xx.toHexString();
+                                    tc.error(e);
+                                }
+                                j++;
+                            }
+                            i++;
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_modpow(tc: TestContext, alg: ModPowAlg): void {
+                    let e: string;
+                    const algname: string = ModPowAlg[alg];
+                    const endTime: size_t =
+                        tc.start([LIprefix + ` (naive and ${algname} modpow agree)`],
+                                 tc.testTime);
+
+                    const one: LI =
+                          LI.ONE.modPow(LI.ZERO, LI.TWO);
+
+                    if (!one.equals(LI.ONE)) {
+                        tc.error("Failed to exponentiate with zero!");
+                    }
+
+                    const s: size_t = 100;
+                    while (!tc.done(endTime)) {
+                        let i: size_t = 1;
+                        while (!tc.done(endTime) && i < s) {
+                            let j: size_t = 1;
+                            while (!tc.done(endTime) && j < s) {
+                                let k: size_t = 1;
+                                while (!tc.done(endTime) && k < s) {
+
+                                    let z: LI = LI.ZERO;
+                                    while (z.iszero()) {
+                                        z = new LI(k, tc.randomSource);
+
+                                        // We need an odd modulus for Montgomery
+                                        // exponentiation to work at all.
+                                        if (alg == ModPowAlg.montgomery && z.getBit(0) === 0) {
+                                            z = z.add(LI.ONE);
+                                        }
+                                    }
+
+                                    let x: LI = (new LI(i, tc.randomSource)).mod(z);
+                                    let y1: LI = new LI(j, tc.randomSource);
+                                    const y2: LI = new LI(j, tc.randomSource);
+
+                                    // Check that 1^y1 = 0 mod 1, and
+                                    // 1^y1 = 1 mod z for z > 1.
+                                    let c: LI = LI.ONE.modPow(y1, z);
+                                    if (z.equals(LI.ONE)) {
+                                        if (!c.equals(LI.ZERO)) {
+                                            e = "Power of one modulo one is not zero!"
+                                                + "\ny1 = 0x" + y1.toHexString()
+                                                + "\nz = 0x" + z.toHexString()
+                                                + "\nc = 0x" + c.toHexString();
+                                            tc.error(e);
+                                        }
+                                    } else if (!c.equals(LI.ONE)) {
+                                        e = "Power of one modulo modulus > 1 is not one!"
+                                            + "\ny1 = 0x" + y1.toHexString()
+                                            + "\nz = 0x" + z.toHexString()
+                                            + "\nc = 0x" + c.toHexString();
+                                        tc.error(e);
+                                    }
+
+                                    const a: LI = x.modPow(y1, z, alg);
+
+                                    // Consistency with naive modpow
+                                    let b: LI = x.modPow(y1, z, ModPowAlg.naive);
+
+                                    if (!a.equals(b)) {
+                                        e = "Modpow and naive modpow are inconsistent!"
+                                            + "\nx = 0x" + x.toHexString()
+                                            + "\ny1 = 0x" + y1.toHexString()
+                                            + "\nz = 0x" + z.toHexString()
+                                            + "\na = 0x" + a.toHexString()
+                                            + "\nb = 0x" + b.toHexString();
+                                        tc.error(e);
+                                    }
+
+                                    // Linearity.
+                                    b = x.modPow(y2, z, alg);
+                                    const ab: LI = a.mul(b);
+                                    c = ab.mod(z);
+
+                                    const ysum: LI = y1.add(y2);
+                                    const cc: LI = x.modPow(ysum, z, alg);
+
+                                    if (!cc.equals(c)) {
+                                        e = "Modpow is not linear in exponent!"
+                                            + "\nx = 0x" + x.toHexString()
+                                            + "\ny1 = 0x" + y1.toHexString()
+                                            + "\ny2 = 0x" + y2.toHexString()
+                                            + "\nysum = 0x" + ysum.toHexString()
+                                            + "\nz = 0x" + z.toHexString()
+                                            + "\na = 0x" + a.toHexString()
+                                            + "\nb = 0x" + b.toHexString()
+                                            + "\nab = 0x" + ab.toHexString()
+                                            + "\nc = 0x" + c.toHexString()
+                                            + "\ncc = 0x" + cc.toHexString();
+                                        tc.error(e);
+                                    }
+                                    k++;
+                                }
+                                j++;
+                            }
+                            i++;
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_egcd(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t = tc.start([LIprefix + " (egcd)"], tc.testTime);
+
+                    const s: size_t = 100;
+                    while (!tc.done(endTime)) {
+                        let i: size_t = 1;
+                        while (!tc.done(endTime) && i < s) {
+                            let j: size_t = 1;
+                            while (!tc.done(endTime) && j < s) {
+
+                                const x: LI = new LI(i, tc.randomSource);
+                                const y: LI = new LI(j, tc.randomSource);
+
+                                const res: LI[] = x.egcd(y);
+
+                                const a: LI = res[0];
+                                const b: LI = res[1];
+                                const v: LI = res[2];
+
+                                const c: LI = a.mul(x).add(b.mul(y));
+
+                                if (!c.equals(v)) {
+                                    e = "Linear function does not give GCD!"
+                                        + "\nx = 0x" + x.toHexString()
+                                        + "\ny = 0x" + y.toHexString()
+                                        + "\na = 0x" + a.toHexString()
+                                        + "\nb = 0x" + b.toHexString()
+                                        + "\nv = 0x" + v.toHexString()
+                                        + "\nc = 0x" + c.toHexString();
+                                    tc.error(e);
+                                }
+                                j++;
+                            }
+                            i++;
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_legendre(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t = tc.start([LIprefix + " (legendre)"], tc.testTime);
+
+                    const primes: LI[] = [];
+                    for (let i: size_t = 0; i < safe_primes.length; i++) {
+                        primes.push(new LI(safe_primes[i]))
+                    }
+
+                    const s: size_t = 100;
+                    let i: size_t = 1;
+                    while (!tc.done(endTime)) {
+
+                        for (let j: size_t = 0; j < primes.length; j++) {
+
+                            const x: LI = new LI(i, tc.randomSource);
+                            const y: LI = x.neg();
+
+                            // Here we use the fact that -1 is a non-residue.
+                            const lx: sign_t = x.legendre(primes[j]);
+                            const ly: sign_t = y.legendre(primes[j]);
+
+                            if ((x.iszero() && (lx !== 0 || ly !== 0)) ||
+                                (!x.iszero() &&
+                                 (Math.abs(lx) !== 1 || Math.abs(ly) !== 1 || lx === ly))) {
+                                e = "Computation of Legendre symbol failed!"
+                                    + "\nx = 0x" + x.toHexString()
+                                    + "\ny = 0x" + y.toHexString()
+                                    + "\nlx = 0x" + lx
+                                    + "\nly = 0x" + ly;
+                                tc.error(e);
+                            }
+                        }
+                        if (i === s) {
+                            i = 1;
+                        } else {
+                            i++;
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_modSqrt(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t = tc.start([LIprefix + " (sqrt)"], tc.testTime);
+
+                    const primes: LI[] = [];
+                    for (let i: size_t = 0; i < safe_primes.length; i++) {
+                        primes.push(new LI(safe_primes[i]))
+                    }
+
+                    const s: size_t = 100;
+                    let i: size_t = 1;
+                    while (!tc.done(endTime)) {
+
+                        for (let j: size_t = 0; j < primes.length; j++) {
+
+                            let x: LI = new LI(i, tc.randomSource);
+                            let y: LI = x.mul(x).mod(primes[j]);
+                            let z: LI = y.modSqrt(primes[j]);
+
+                            // We don't care which of the roots we get.
+                            let w: LI = z.mul(z).mod(primes[j]);
+
+                            if (!w.equals(y)) {
+                                e = "Computation of square root failed!"
+                                    + "\np = 0x" + primes[j].toHexString()
+                                    + "\nx = 0x" + x.toHexString()
+                                    + "\ny = 0x" + y.toHexString()
+                                    + "\nz = 0x" + z.toHexString()
+                                    + "\nw = 0x" + w.toHexString();
+                                tc.error(e);
+                            }
+                        }
+                        if (i === s) {
+                            i = 1;
+                        } else {
+                            i++;
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_conversion(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t = tc.start([LIprefix + " (conversion)"], tc.testTime);
+
+                    const s: size_t = 100;
+                    let i: size_t = 1;
+                    while (!tc.done(endTime)) {
+
+                        const x: LI = new LI(i, tc.randomSource);
+                        const byteArray: uint8_t[] = x.toByteArray();
+                        const y: LI = new LI(byteArray);
+
+                        if (!x.equals(y)) {
+                            e = "Conversion failed!"
+                                + "\nx = 0x" + x.toHexString()
+                                + "\ny = 0x" + y.toHexString();
+                            tc.error(e);
+                        }
+
+                        if (i === s) {
+                            i = 1;
+                        } else {
+                            i++;
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_shifting(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t = tc.start([LIprefix + " (shift)"], tc.testTime);
+
+                    const s: size_t = 100;
+                    let i: size_t = 1;
+                    while (!tc.done(endTime)) {
+
+                        const x: LI = new LI(i, tc.randomSource);
+
+                        for (let j: size_t = 0; j <= 64; j++) {
+                            const lx: LI = x.shiftLeft(j);
+                            const y: LI = lx.shiftRight(j);
+
+                            if (!x.equals(y)) {
+                                e = "Shift failed!"
+                                    + "\nx = 0x" + x.toHexString()
+                                    + "\ny = 0x" + y.toHexString();
+                                tc.error(e);
+                            }
+                        }
+
+                        const rx: LI = x.shiftRight(i + 1);
+                        if (!rx.equals(LI.ZERO)) {
+                            e = "Right shift failed!"
+                                + "\nx = 0x" + x.toHexString();
+                            tc.error(e);
+                        }
+
+                        if (i === s) {
+                            i = 1;
+                        } else {
+                            i++;
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_hex(tc: TestContext): void {
+                    tc.start([LIprefix + " (hex)"], tc.testTime);
+
+                    const x: LI = new LI(100, tc.randomSource);
+                    const xhex: string = x.toHexString();
+                    const x2: LI = new LI(xhex);
+                    if (!x.equals(x2)) {
+                        tc.error("Failed to convert positive integer to hex! (" + xhex + ")");
+                    }
+
+                    const y: LI = new LI(100, tc.randomSource);
+                    const yhey: string = y.toHexString();
+                    const y2: LI = new LI(yhey);
+                    if (!y.equals(y2)) {
+                        tc.error("Failed to convert negative integer to hex! ("
+                                 + yhey + ")");
+                    }
+
+                    tc.end();
+                }
+
+                export function test_mul_mont_word(tc: TestContext): void {
+                    // We need this test be fast to allow us to perform exhaustive
+                    // testing. Thus, we tinker with the internal values of LI
+                    // instances.
+
+                    let e: string;
+
+                    let ex: string = "";
+                    if (WORDSIZE <= 8) {
+                        ex = " - exhaustive";
+                    }
+
+                    tc.start([LIprefix + ` (mul_mont for word moduli${ex})`], tc.testTime);
+
+                    const bound: size_t = 1 << Math.min(8, WORDSIZE)
+
+                    // m < 2^28, so we have two additional zero words.
+                    let m: LI = new LI(1, [1, 0, 0]);
+
+                    // R = b^1, where b = 2^28.
+                    const R: LI = LI.ONE.shiftLeft(WORDSIZE);
+
+                    // These arrays are not normalized internally when we initialize
+                    // like this.
+                    const x: LI = new LI(1, [1, 0, 0]);
+                    const y: LI = new LI(1, [1, 0, 0]);
+
+                    // a must have twice as many limbs as m.
+                    const uli_a: uli_t = [0, 0, 0, 0, 0, 0];
+
+                    for (let m0: word_t = 1; m0 < bound; m0 += 2) {
+
+                        // Rmodinv = R^(-1) mod m. Always exist, since R is a power of
+                        // two and m is odd.
+                        let Rmodminv: LI = R.mod(m).modInv(m);
+
+                        for (let x0: word_t = 0; x0 < m0; x0 += 1) {
+
+                            x.value[0] = x0;
+                            x.sign = (x0 == 0) ? 0 : 1;
+
+                            for (let y0: word_t = 0; y0 < m0; y0 += 1) {
+
+                                y.value[0] = y0;
+                                y.sign = (y0 == 0) ? 0 : 1;
+
+                                // a = x * y * Rmodinv mod m using Montgomery
+                                // multiplication.
+                                const uli_m: uli_t = [m.value[0], 0, 0]
+                                mul_mont(uli_a, x.value, y.value, uli_m);
+
+                                // a = x * y * Rmodinv mod m computed naively.
+                                let a: LI = x.mul(y).mod(m).mul(Rmodminv).mod(m);
+
+                                if (cmp(uli_a, a.value) != 0) {
+                                    e = "Montgomery multiplication failed for word moduli!"
+                                        + "\nR = 0x" + R.toHexString()
+                                        + "\nRmodminv = 0x" + Rmodminv.toHexString()
+                                        + "\nm = 0x" + m.toHexString()
+                                        + "\nx = 0x" + x.toHexString()
+                                        + "\ny = 0x" + y.toHexString()
+                                        + "\na = 0x" + hex(uli_a)
+                                        + "\naa = 0x" + a.toHexString();
+                                    tc.error(e);
+                                }
+                            }
+                        }
+                        m = m.add(LI.TWO);
+                    }
+                    tc.end();
+                }
+
+                export function test_mul_mont(tc: TestContext): void {
+                    let e: string;
+
+                    const endTime: size_t =
+                        tc.start([LIprefix + " (mul_mont for large moduli)"], tc.testTime);
+
+                    const s: size_t = 100;
+
+                    let bitLength: size_t = 2;
+                    while (!tc.done(endTime)) {
+
+                        // Odd integer with exactly bitLength bits.
+                        let LI_m: LI = new LI(bitLength - 1, tc.randomSource);
+                        LI_m = LI_m.add(LI.ONE.shiftLeft(bitLength - 1));
+                        if (LI_m.getBit(0) == 0) {
+                            LI_m = LI_m.add(LI.ONE);
+                        }
+
+                        // Smallest n such that m < b^n.
+                        const n: size_t = msword(LI_m.value) + 1;
+
+                        // R = b^n, where b = 2^28.
+                        const LI_R: LI = LI.ONE.shiftLeft(n * 28);
+
+                        // Rmodinv = R^(-1) mod m. Always exist, since R is a power of
+                        // two and m is odd.
+                        const LI_Rmodminv: LI = LI_R.mod(LI_m).modInv(LI_m);
+
+                        // Random integers 0 <= x, y < m.
+                        const LI_x: LI = new LI(bitLength + 50, tc.randomSource).mod(LI_m);
+                        const LI_y: LI = new LI(bitLength + 50, tc.randomSource).mod(LI_m);
+
+                        // a = x * y * Rmodinv mod m using Montgomery multiplication.
+                        let uli_m: uli_t = newarray(LI_m.value.length + 2);
+                        let uli_x: uli_t = newarray(uli_m.length);
+                        let uli_y: uli_t = newarray(uli_m.length);
+                        let uli_a: uli_t = newarray(2 * uli_m.length);
+
+                        set(uli_m, LI_m.value);
+                        set(uli_x, LI_x.value);
+                        set(uli_y, LI_y.value);
+
+                        mul_mont(uli_a, uli_x, uli_y, uli_m);
+
+                        // a = x * y * Rmodinv mod m computed naively.
+                        const LI_a: LI = LI_x.mul(LI_y).mod(LI_m).mul(LI_Rmodminv).mod(LI_m);
+
+                        if (cmp(uli_a, LI_a.value) != 0) {
+                            e = "Montgomery multiplication failed!"
+                                + "\nn = " + n
+                                + "\nR = 0x" + LI_R.toHexString()
+                                + "\nRmodinv = 0x" + LI_Rmodminv.toHexString()
+                                + "\nm = 0x" + LI_m.toHexString()
+                                + "\nx = 0x" + LI_x.toHexString()
+                                + "\ny = 0x" + LI_y.toHexString()
+                                + "\na = 0x" + hex(uli_a)
+                                + "\naa = 0x" + LI_a.toHexString();
+                            tc.error(e);
+                        }
+
+                        bitLength = (bitLength + 1) % s;
+                        if (bitLength === 0) {
+                            bitLength = 2;
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_LI(tc: TestContext): void {
+                    test_identities(tc);
+                    test_addition_commutativity(tc);
+                    test_addition_associativity(tc);
+                    test_squaring(tc);
+                    test_multiplication_commutativity(tc);
+                    test_multiplication_associativity(tc);
+                    test_distributivity(tc);
+                    test_division_with_zero_remainder(tc);
+                    test_division_with_remainder(tc);
+                    test_mul_mont_word(tc);
+                    test_mul_mont(tc);
+                    test_modpow(tc, ModPowAlg.window);
+                    test_modpow(tc, ModPowAlg.montgomery);
+                    test_egcd(tc);
+                    test_legendre(tc);
+                    test_modSqrt(tc);
+                    test_conversion(tc);
+                    test_shifting(tc);
+                    test_hex(tc);
+                }
+
+                /**
+                 * Compute a power-product using the given bases, exponents, and
+                 * modulus. This is a naive implementation for simple use and to debug
+                 * {@link ModPowProd.modPowProd}.
+                 *
+                 * @param bases - Bases.
+                 * @param exponents - Exponents.
+                 * @param modulus - Modulus.
+                 * @returns Power product.
+                 */
+                function modPowProd_naive(bases: LI[], exponents: LI[], modulus: LI): LI {
+                    let result: LI = LI.ONE;
+                    for (let i: size_t = 0; i < bases.length; i++) {
+                        result = result.modMul(bases[i].modPow(exponents[i], modulus), modulus);
+                    }
+                    return result;
+                }
+
+                export function test_ModPowProd(tc: TestContext): void {
+                    const prefix: string = "verificatum.arithm.ModPowProd";
+
+                    let e: string;
+                    let i: size_t;
+                    const endTime: size_t =
+                          tc.start([prefix + " (agrees with naive)"], tc.testTime);
+
+                    const modulus: LI = new LI(safe_primes[0]);
+
+                    const maxNoBases: size_t = 30;
+                    while (!tc.done(endTime)) {
+
+                        for (let noBases: size_t = 1; noBases <= maxNoBases; noBases++) {
+
+                            const bases: LI[] = [];
+                            for (i = 0; i < noBases; i++) {
+                                bases[i] = new LI(modulus.bitLength(), tc.randomSource);
+                                bases[i] = bases[i].mod(modulus);
+                            }
+
+                            // Exponents should have somewhat different bit lengths.
+                            const exponents: LI[] = [];
+                            for (i = 0; i < noBases; i++) {
+                                const len: size_t = Math.max(1, modulus.bitLength() - 5 + i);
+                                exponents[i] = new LI(len, tc.randomSource);
+                            }
+
+                            const maxWidth: size_t = Math.min(noBases, ModPowProd.maxWidth);
+
+                            for (let width: size_t = 1; width <= maxWidth; width++) {
+
+                                const mpp: ModPowProd = new ModPowProd(bases, modulus, width);
+                                const a: LI = mpp.modPowProd(exponents);
+                                const b: LI = modPowProd_naive(bases, exponents, modulus);
+
+                                if (!a.equals(b)) {
+                                    e = "Modular power products disagrees!"
+                                        + "\nnoBases = " + noBases
+                                        + "\nwidth = " + width
+                                        + "\na = " + a.toHexString()
+                                        + "\nb = " + b.toHexString()
+                                        + "\nm = " + modulus.toHexString();
+                                    tc.error(e);
+                                }
+                            }
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_FixModPow(tc: TestContext): void {
+                    const prefix: string = "verificatum.arithm.FixModPow";
+
+                    const endTime: size_t =
+                          tc.start([prefix + " (agrees with naive)"], tc.testTime);
+
+                    const modulus: LI = new LI(safe_primes[0]);
+
+                    while (!tc.done(endTime)) {
+
+                        const basis: LI = new LI(modulus.bitLength(), tc.randomSource);
+
+                        for (let width: size_t = 1; width <= 8; width++) {
+
+                            const fmp: FixModPow = new FixModPow(basis, modulus, 20, width);
+
+                            for (let i: size_t = 1; i < modulus.bitLength() + 5; i++) {
+
+                                const exponent: LI = new LI(i, tc.randomSource);
+                                const b: LI = fmp.modPow(exponent);
+                                const c: LI = basis.modPow(exponent, modulus);
+
+                                if (!b.equals(c)) {
+                                    const e: string =
+                                          "Fixed-base exponentiation is wrong!"
+                                          + "\nb = " + b.toHexString()
+                                          + "\nc = " + c.toHexString();
+                                    tc.error(e);
+                                }
+                            }
+                        }
+                    }
+                    tc.end();
+                }
+
+                export function test_arithm(tc: TestContext): void {
+                    const prefix: string = "verificatum/arithm/";
+
+                    tc.startSet(prefix);
+
+                    test_uli(tc);
+                    test_LI(tc);
+                    test_ModPowProd(tc);
+                    test_FixModPow(tc);
+                }
+            }
+
+            import RandomSource = verificatum.base.RandomSource;
+            import ofType = verificatum.base.ofType;
+
+            /**
+             * Testing and timing functions.
+             */
+
+            export abstract class TestContext {
+
+                randomSource: RandomSource;
+                statDist: size_t;
+                testTime: size_t;
+
+                /**
+                 * Creates a context with a given random source.
+                 *
+                 * @param testTime - Regulates the running time of testing.
+                 * @param randomSource - Source of randomness.
+                 * @param statDist - Statistical distance.
+                 */
+                constructor(testTime: size_t,
+                            randomSource: RandomSource,
+                            statDist: size_t) {
+                    this.testTime = testTime;
+                    this.randomSource = randomSource;
+                    this.statDist = statDist;
+                }
+
+                /**
+                 * Write test output.
+                 *
+                 * @param s - Test information.
+                 */
+                abstract write(s: string): void;
+
+                /**
+                 * Write test output with a newline
+                 *
+                 * @param s - Test information.
+                 */
+                abstract writenl(s: string): void;
+
+                /**
+                 * Exit aggressively.
+                 */
+                abstract exit(exitCode: int32_t): void;
+
+                /**
+                 * Starts a test.
+                 *
+                 * @param module - Module name as string.
+                 */
+                startSet(module: string): void {
+                    this.writenl("");
+                    this.writenl("Entering " + module);
+                }
+
+                /**
+                 * Starts a test.
+                 *
+                 * @param headers - Names for tests.
+                 * @param seconds - Running time of test.
+                 * @returns End time of started test.
+                 */
+                start(headers: string[], seconds: size_t): size_t {
+                    let s: string = "";
+                    if (ofType(headers, "string")) {
+                        s = "Test: " + headers + "...";
+                    } else {
+                        s = "Test: ";
+                        for (let i: size_t = 0; i < headers.length; i++) {
+                            if (i > 0) {
+                                s += "\n      ";
+                            }
+                            s += headers[i];
+                        }
+                        s += "... ";
+                    }
+                    this.write(s);
+
+                    return time() + seconds;
+                }
+
+                /**
+                 * Returns true if the test should continued to run
+                 * and false otherwise.
+                 *
+                 * @param endEpoch - End time of test.
+                 * @returns True or false depending on if the test should be ended.
+                 */
+                done(endEpoch: size_t): boolean {
+                    return time() > endEpoch;
+                }
+
+                /**
+                 * Prints the end of a test.
+                 */
+                end(): void {
+                    this.writenl(" done.");
+                }
+
+                /**
+                 * Prints error.
+                 *
+                 * @param msg - Error message.
+                 */
+                error(msg: string): void {
+                    this.write("\n\n" + msg + "\n\n");
+                    this.write("");
+                    this.exit(0);
+                }
+            }
+
+        }
+
+        import hex = verificatum.arithm.uli.hex;
+        import hexbyte = verificatum.base.hexbyte;
+
+        /**
+         * Debugging functionality.
+         * TSDOC_MODULE
+         */
+
+        /**
+         * Returns the epoch in milliseconds.
+         * @returns Epoch in milliseconds.
+         */
+        export function time_ms(): size_t {
+            return (new Date()).getTime();
+        }
+
+        /**
+         * Returns the epoch in seconds.
+         * @returns Epoch in seconds.
+         */
+        export function time(): size_t {
+            return Math.floor(time_ms() / 1000);
+        }
+
+        /**
+         * Returns a hexadecimal representation of this input
+         * array made for 28 = 28. It separates words by spaces.
+         *
+         * @param x - Array of words.
+         * @returns Hexadecimal string representation of the array.
+         */
+        export function hex28(x: uli_t): string {
+            const h: string = hex(x);
+            const offset: size_t = (7 - h.length % 7) % 7;
+
+            let i: size_t = 0;
+            let s: string = "";
+            while (i < offset) {
+                s += "0";
+                i++;
+            }
+
+            let j: size_t = 0;
+            while (j < h.length) {
+                s += h[j];
+                i++;
+                if (j < h.length - 1 && i % 7 === 0) {
+                    s += " ";
+                }
+                j++;
+            }
+            return s;
+        }
+
+        /**
+         * Converts an integer to its hexadecimal encoding.
+         *
+         * @param x - A 32-bit JavaScript "number" that is actually an integer.
+         * @returns Hexadecimal representation of this integer.
+         */
+        export function uint32ToHex(x: uint32_t): string {
+            let hexString: string = "";
+            for (let i: size_t = 0; i < 4; i++) {
+                hexString = hexbyte(x & 0xFF) + hexString;
+                x >>= 8;
+            }
+            return hexString;
+        }
+
+        const hexToBinMap: Map<string, string> = new Map<string, string>();
+        hexToBinMap.set('0', '0000');
+        hexToBinMap.set('1', '0001');
+        hexToBinMap.set('2', '0010');
+        hexToBinMap.set('3', '0011');
+        hexToBinMap.set('4', '0100');
+        hexToBinMap.set('5', '0101');
+        hexToBinMap.set('6', '0110');
+        hexToBinMap.set('7', '0111');
+        hexToBinMap.set('8', '1000');
+        hexToBinMap.set('9', '1001');
+        hexToBinMap.set('A', '1010');
+        hexToBinMap.set('B', '1011');
+        hexToBinMap.set('C', '1100');
+        hexToBinMap.set('D', '1101');
+        hexToBinMap.set('E', '1110');
+        hexToBinMap.set('F', '1111');
+
+        /**
+         * Converts a hexadecimal string into a binary string.
+         *
+         * @param hexString - Hexadecimal string.
+         * @returns Binary string.
+         */
+        export function hexToBin(hexString: string): string {
+            let res: string = "";
+            for (let i: size_t = 0; i < hexString.length; i++) {
+                res += hexToBinMap.get(hexString[i]);
+            }
+            return res;
+        }
+    }
+
+}
+
