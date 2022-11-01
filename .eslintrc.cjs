@@ -1,4 +1,19 @@
-{
+
+// Copyright 2008-2022 Douglas Wikstrom
+
+// Our view of compilers and linters is the following.
+//
+// (0) Enable as strict as possible.
+// (1) Warnings and deprecation information are errors.
+// (2) Software should have zero errors when it is used.
+// (3) If a rule is disabled globally, then this is documented.
+// (4) If a rule is disabled locally, then this is documented in the code
+//     unless the reason is obvious from the context.
+//
+// Use 'grep -Rl "eslint-disable" src/ts' to see all places where we
+// have locally disabled rules.
+
+module.exports = {
     "root": true,
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
@@ -31,7 +46,8 @@
 
 	// We use casts of the form "<mytype>x" consistently, since
 	// the "as mytype" notation is confusing for
-	// non-TypeScript/JavaScript programmers.
+	// non-TypeScript/JavaScript programmers who may review our
+	// software.
 	"@typescript-eslint/consistent-type-assertions": ["error", {
             "assertionStyle": "angle-bracket",
 	    "objectLiteralTypeAssertions": "allow"
@@ -58,7 +74,7 @@
 	"@typescript-eslint/explicit-module-boundary-types": "error",
 	"@typescript-eslint/member-delimiter-style": "error",
 
-	// This is too strict and harms overall readability.
+	// This harms overall readability of software.
 	"@typescript-eslint/member-ordering": "off",
 
 	"@typescript-eslint/method-signature-style": "error",
@@ -67,7 +83,8 @@
 	"@typescript-eslint/no-extraneous-class": "error",
 
 	// This is philosophically wrong to ever enable in a typed
-	// language, where this is useful to the reader.
+	// language, where this is useful to the reader. Explicit
+	// typing is a comment for readers and less error prone.
 	"@typescript-eslint/no-inferrable-types": "off",
 
 	"@typescript-eslint/no-invalid-void-type": "error",
@@ -77,13 +94,15 @@
 
 	// We use as precise types as is possible as a form of comment
 	// and in anticipation of stricter type checking. Thus, we
-	// need to turn this off.
+	// need to turn this off, despite that we understand this in the
+	// context of C types which can be confusing.
 	"@typescript-eslint/no-type-alias": "off",
 
 	"@typescript-eslint/prefer-enum-initializers": "error",
 
 	// We prefer plain for-loops, since it makes the code more
-	// readable by non-TypeScript/JavaScript programmers.
+	// readable by non-TypeScript/JavaScript programmers and it is
+	// still faster in some cases.
 	"@typescript-eslint/prefer-for-of": "off",
 
 	"@typescript-eslint/prefer-function-type": "error",
@@ -115,21 +134,30 @@
 	"@typescript-eslint/func-call-spacing": "error",
 
 	// This rule is apparently broken and nobody is interested in
-	// fixing it, so we turn it off entirely and rely on our OCD
-	// to keep the code in good shape. Let us know if this
-	// changes.
+	// fixing it, so we turn it off entirely and rely on OCD
+	// to keep the code in good shape. Let us know if you have a
+	// more severe case of this disorder than we do.
 	"indent": "off",
 	"@typescript-eslint/indent": ["off"],
 
-	// This is wrong to use at all.
+	// This is wrong to use at all. Variables are variables and if
+	// they are not used, or potentially not initialized before use,
+	// then this is an error
 	"init-declarations": "off",
 	"@typescript-eslint/init-declarations": "off",
 
-	"@typescript-eslint/keyword-spacing": "error",
+	// This is a matter of taste. Historically, people have used
+	// both consistent space and no-space between, e.g., a cast and
+	// a variable.
+	"@typescript-eslint/keyword-spacing": "off",
 
 	// This is too strict and harms overall readability.
 	"lines-between-class-members": "off",
 	"@typescript-eslint/lines-between-class-members": ["off"],
+
+	// It makes perfect sense to gather certain functionality in
+	// static functions of a class for uniformity reasons.
+	"@typescript-eslint/no-extraneous-class": "off",
 
 	"@typescript-eslint/no-dupe-class-members": "error",
 	"@typescript-eslint/no-duplicate-imports": "error",
@@ -138,17 +166,21 @@
 	"@typescript-eslint/no-loop-func": "error",
 
 	// Arithmetic constants are not magic. They have a semantic
-	// meaning to programmers.
+	// meaning to *real* programmers :-)
 	"@typescript-eslint/no-magic-numbers": "off", 
 
 	"@typescript-eslint/no-redeclare": "error",
 	"@typescript-eslint/no-restricted-imports": "error",
 
-	// This is wrong to use at all.
+	// This is wrong to use at all as a general rule despite that
+	// it is a good principle.
 	"@typescript-eslint/no-shadow": "off",
 
 	"@typescript-eslint/no-unused-expressions": "error",
-	"@typescript-eslint/no-use-before-define": "error",
+
+	// This is outdated.
+	"@typescript-eslint/no-use-before-define": "off",
+
 	"@typescript-eslint/no-useless-constructor": "error",
 	"@typescript-eslint/object-curly-spacing": "error",
 	"@typescript-eslint/padding-line-between-statements": "error",
@@ -159,6 +191,7 @@
 	"@typescript-eslint/semi": "error",
 
 	// We use the pattern "foo()" and "function()" consistently.
+	// This is a matter of taste.
 	"space-before-function-paren": "off",
 	"@typescript-eslint/space-before-function-paren": ["error", {
             "anonymous": "never",
@@ -175,8 +208,8 @@
 	// as an HTML tag, whereas "1 <tr " should be flagged.
 	//
 	// We do not modify comments for arithmetic algorithms because
-	// the linter gives false positives. Please let us know when
-	// this bug in the eslint-plugin-tsdoc is corrected.
+	// the linter gives false positives. Please let us know if
+	// this bug in the eslint-plugin-tsdoc is addressed.
         "tsdoc/syntax": "off"
     }
 }

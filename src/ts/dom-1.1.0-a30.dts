@@ -1,0 +1,221 @@
+
+// Copyright 2008-2022 Douglas Wikstrom
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use, copy,
+// modify, merge, publish, distribute, sublicense, and/or sell copies
+// of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+// BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+// ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+// CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+export namespace verificatum {
+
+    export namespace dom {
+        import ByteTree = verificatum.algebra.ByteTree;
+        import ElGamalZKPoKClient = verificatum.crypto.ElGamalZKPoKClient;
+        import ElGamalZKPoKComp = verificatum.crypto.ElGamalZKPoKComp;
+        import ElGamalZKPoKServer = verificatum.crypto.ElGamalZKPoKServer;
+        import RandomSource = verificatum.base.RandomSource;
+        import byteArrayToHex = verificatum.base.byteArrayToHex;
+
+        /**
+         * Wrapper of the built-in random device of the Web Crypto API {@link
+         * https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues}
+         */
+        export class WebAPIRandomDevice extends RandomSource {
+            protected getRandomUint8Array(len: size_t): Uint8Array {
+                const byteArray: Uint8Array = new Uint8Array(len);
+                window.crypto.getRandomValues(byteArray);
+                return byteArray;
+            }
+        }
+
+        /**
+         * Utility class for simplifying configuration and optimizing the use
+         * of cryptosystems by users.
+         */
+        export class WebAPIElGamalZKPoKComp extends ElGamalZKPoKComp {
+
+            worker: Worker;
+
+            /**
+             * Constructs a pre-computer for the given public key and variant
+             * of the zero knowledge proof encoded.
+             *
+             * @param marshalled - Representation of a byte tree with two
+             * children: (1) a full generalized El Gamal public key including
+             * the group used using the format of the Verificatum Mix-Net
+             * (VMN), and (2) an encoding of the zero knowledge proof used to
+             * prove knowledge of the plaintext as well as possibly restrict
+             * the plaintext to a subset, i.e., one of several options in an
+             * election or free text of bounded length in the simplest case.
+             * @param seed - A random seed consisting of exactly 32
+             * bytes, or a cryptographically strong source of randomness.
+             *
+             * @throws Error if any input is not correctly formatted.
+             */
+            constructor(marshalled: string | uint8_t[],
+                        seed: uint8_t[],
+                        root: string,
+                        script: string) {
+                super(marshalled, seed);
+
+                let code: string = this.workerCode.toString();
+                code = code.replace("ElGamalZKPoKComp",
+                                    "verificatum.crypto.ElGamalZKPoKComp");
+                const blob: Blob = new Blob(["(" + code + ")();"]);
+                const url: string = window.URL.createObjectURL(blob);
+                this.worker = new Worker(url);
+                const hexSeed: hex_t = byteArrayToHex(seed);
+                this.worker.postMessage(["initialize",
+                                         root,
+                                         script,
+                                         marshalled,
+                                         hexSeed]);
+            }
+
+            /**
+             * The body of this function stores the code of the Worker.
+             */
+            private workerCode = function(): void {
+
+                let computer: ElGamalZKPoKComp;
+
+                /* eslint-disable @typescript-eslint/explicit-function-return-type */
+                onmessage = function(e: MessageEvent) {
+
+                    const command: string = e.data[0];
+
+                    if (command == "initialize") {
+
+                        const root: string = e.data[1];
+                        const script: string = e.data[2];
+                        const marshalled: string = e.data[3];
+                        const hexSeed: string = e.data[4];
+
+                        importScripts(root + "/" + script);
+
+                        computer = new ElGamalZKPoKComp(marshalled, hexSeed);
+
+                    } else {
+                        computer.precompute().then( (bt: ByteTree) => {
+                            const ab: ArrayBuffer =
+                                  (new Uint8Array(bt.toByteArray())).buffer;
+
+                            // Feel free to suggest a better way to handle the
+                            // insanity that is the incompatible retroactive
+                            // typing of Node and WebAPI.
+
+                            /* eslint-disable @typescript-eslint/prefer-ts-expect-error */
+                            /* eslint-disable @typescript-eslint/ban-ts-comment */
+                            // @ts-ignore
+                            self.postMessage(ab, [ab]);
+                            /* eslint-enable @typescript-eslint/ban-ts-comment */
+                            /* eslint-enable @typescript-eslint/prefer-ts-expect-error */
+
+                        });
+                    }
+                };
+                /* eslint-enable @typescript-eslint/explicit-function-return-type */
+            };
+
+            override precompute(): Promise<ByteTree> {
+
+                this.worker.postMessage([]);
+
+                // Return the result as a promise.
+                return new Promise<ByteTree>( (resolve, reject) => {
+                    /* eslint-disable @typescript-eslint/explicit-function-return-type */
+                    this.worker.onmessage = function(e: MessageEvent) {
+                        try {
+                            const a: uint8_t[] = Array.from(new Uint8Array(e.data));
+                            const bt: ByteTree = ByteTree.readByteTreeFromByteArray(a);
+                            resolve(bt);
+                        } catch (e: unknown) {
+                            reject("This is a bug!");
+                        }
+                    };
+                    /* eslint-enable @typescript-eslint/explicit-function-return-type */
+                });
+            }
+        }
+
+        /**
+         * Plain client that performs all computations in this thread using
+         * the builtin cryptographically strong random source of the WebAPI.
+         */
+        export class WebAPIElGamalZKPoKClient extends ElGamalZKPoKClient {
+
+            /**
+             * Constructs a client from the given representation of a public
+             * key and zero knowledge proof and using the given random source.
+             *
+             * @param marshalled - Representation of public key and zero
+             * knowledge proof as a byte tree encoded as a byte array or
+             * string.
+             * @param root - Location of script.
+             * @param script - Script to be loaded in worker.
+             */
+            constructor(marshalled: string | uint8_t[],
+                        root?: string,
+                        script?: string) {
+                super(WebAPIElGamalZKPoKClient.comp(marshalled, root, script));
+            }
+
+            /**
+             * Returns a computer of precomputed values for encryption that is
+             * either run in this thread (default) or in a WebWorker thread.
+             *
+             * @param marshalled - Representation of public key and zero
+             * knowledge proof as a byte tree encoded as a byte array or
+             * string.
+             * @param worker - Determines if a WebWorker is used or not.
+             */
+            static comp(marshalled: string | uint8_t[],
+                        root?: string,
+                        script?: string): ElGamalZKPoKComp {
+                const randomSource: RandomSource = new WebAPIRandomDevice();
+                if (typeof script === "undefined") {
+                    return new ElGamalZKPoKComp(marshalled, randomSource);
+                } else if (typeof root != "undefined" && typeof script != "undefined") {
+                    const seed: uint8_t[] = randomSource.getBytes(32);
+                    return new WebAPIElGamalZKPoKComp(marshalled, seed, root, script);
+                } else {
+                    throw Error("Root provided without a script!");
+                }
+            }
+        }
+
+        /**
+         * Plain client that performs all computations in this thread using
+         * the builtin cryptographically strong random source of the WebAPI.
+         */
+        export class WebAPIElGamalZKPoKServer extends ElGamalZKPoKServer {
+
+            /**
+             * Constructs a server that uses the WebAPI random source
+             * internally.
+             *
+             * @param groupName - Prime order group to use.
+             * @param keyWidth - Width of product group used.
+             */
+            constructor(groupName: string, keyWidth: size_t = 1) {
+                super(new WebAPIRandomDevice(), groupName, keyWidth);
+            }
+        }
+
+    }
+}
+

@@ -25,21 +25,33 @@
 # the package file if the version of VTS is updated.
 VTS-BA_VERSION:=$(shell cat package.json | grep version | sed "s/[^:]*://; s/[\", ]//g")
 
+# Source directory.
+SRC=src
+
+JS_SRC=$(SRC)/js
+
+# Root of packages.
+PACKAGES=packages
+TS_SRC=$(SRC)/ts
+
+# Documentation directory and generated temporary source directory
+# needed to make TypeDoc work.
+DOC=doc
+DOC_SRC=doc_src
+
 # These files are essentially a concatenation: of the library, testing
 # routines, wrapper for Node's random generator, and a command line
 # interface for testing only the arithmetic routines.
 TSFILES=\
-src/vts-bad-n-$(VTS-BA_VERSION)-p28.ts \
-src/vts-bad-n-$(VTS-BA_VERSION)-p30.ts \
-src/vts-bad-n-$(VTS-BA_VERSION)-a28.ts \
-src/vts-bad-n-$(VTS-BA_VERSION)-a30.ts
+$(TS_SRC)/vts-bad-n-$(VTS-BA_VERSION)-p30.ts \
+$(TS_SRC)/vts-bad-n-$(VTS-BA_VERSION)-a30.ts
 
 tsfiles: $(TSFILES)
-$(TSFILES) : src/vts-bad-n-%.ts: src/vts-ba-%.ts src/vts-bad-%.dts src/node-%.dts src/devnode.dts
+$(TSFILES) : $(TS_SRC)/vts-bad-n-%.ts: $(TS_SRC)/vts-ba-%.ts $(TS_SRC)/vts-bad-%.dts $(TS_SRC)/node-%.dts $(TS_SRC)/devnode.dts
 	cat $^ > $@
 	printf "\nverificatum.devnode.cli();\n" >> $@
 
-JSFILES=$(shell echo $(TSFILES) | sed "s|src/|dist/|g; s|\.ts|\.js|g")
+JSFILES=$(shell echo $(TSFILES) | sed "s|$(TS_SRC)/|dist/|g; s|\.ts|\.js|g")
 
 # Multitarget with multiple dependencies capture what tsc does.
 jsfiles: $(JSFILES)
@@ -61,22 +73,35 @@ $(JSFILES): $(TSFILES)
 %w.js : %.js
 	cat $< | sed "s|export \(var verificatum\)|\1|g" > $@
 
+# TSDoc requires this hack to work.
+$(DOC_SRC):
+	@mkdir -p $(DOC_SRC)/$(TS_SRC)
+	@cp tsconfig*.json $(DOC_SRC)
+	@cp $(TS_SRC)/vts-ba-*.ts $(DOC_SRC)/$(TS_SRC)
+	@find $(DOC_SRC) -type f -exec sed -i -e 's|TSDOC_MODULE|@module|g' {} \;
+
+# TSDoc requires this hack to have links to line numbers.
+$(DOC): $(DOC_SRC)
+	cd $(DOC_SRC); npx typedoc --tsconfig tsconfig.json --entryPointStrategy expand --out ../$(DOC) .
+	@find $(DOC) -type f -exec sed -i -e 's|\(<li>Defined in \)@verificatum/\([^:]*\):\([^<]*\)\(</li>\)|\1<a href="https://github.com/verificatum/verificatum-vts-ba-next/blob/master/src/ts/\2#L\3">\2:\3</a>\4|g' {} \;
+#	rm -rf $(DOC_SRC)
+
 # It is prudent to check all files independently.
 check: $(JSFILES)
 	@printf "\n"
-	node dist/vts-bad-n-$(VTS-BA_VERSION)-p28.js test 5
-	@printf "\n"
 	node dist/vts-bad-n-$(VTS-BA_VERSION)-p30.js test 5
-	@printf "\n"
-	node dist/vts-bad-n-$(VTS-BA_VERSION)-a28.js test 5
 	@printf "\n"
 	node dist/vts-bad-n-$(VTS-BA_VERSION)-a30.js test 5
 
+bench: $(JSFILES)
+	node dist/vts-bad-n-$(VTS-BA_VERSION)-a30.js bench_arithm 5
+
 lint: $(TS_DEVNODE)
-	npm run lint
+	npx eslint $(SRC)
 
 clean:
 	@rm -f $(TSFILES)
+	@rm -rf $(DOC) $(DOC_SRC)
 	@find . -type f -name '*~' -print -delete
 	@rm -rf dist
 	@rm -f package-lock.json

@@ -1,11 +1,57 @@
 
-Self-contained big integer arithmetic library in pure TypeScript with
-zero dependencies. Complete documentation with explicit references to
-the literature for arithmetic algorithms
+### Self-contained big integer arithmetic library in pure TypeScript with zero dependencies. Complete documentation with explicit references to the literature for arithmetic algorithms makes it good teaching material.
 
-## Installation
+### Contents: [Usage](#usage) | [Prerequisites](#prerequisites) | [Source Code](#source-code) | [Contributing](#contributing) | [Remarks](#remarks) | [License](#license) | [Acknowledgments](#acknowledgments)
 
-Installation instructions are given for Ubuntu. Adapt as needed.
+## Usage
+
+Clone this repository and compile TypeScript yourself with your
+favorite options and target or grab one of the compiled JavaScript
+files in `compiled/`.
+
+This repository is *intentionally* minimalistic, since any user is
+likely to embed our source into an application with their own tool
+chain.
+
+**Replace JSBN.** For users of Tom Wu's [JavaScript Big Integer
+library (JSBN)](http://www-cs-students.stanford.edu/~tjw/jsbn) we
+provide a drop-in wrapper class with identical API. The main reasons
+to switch to VTS-BA is that it is written in TypeScript with modern
+language constructs, and is more robust, thoroughly tested and
+documented. It is faster as well.
+
+JSBN lacks proper documentation. Thus, although our class is a trivial
+wrapper we rely on users to give feedback if we implemented anything
+differently.
+
+**Benchmarks.** Modular exponentiation is the most relevant
+operation. The relative running times of this library in pure
+TypeScript (TS) and with WebAssembly (TSW), respectively, compared to
+JSBN for standard prime moduli are given below for Node.
+
+| Group | TS/JSBN | TSW/JSBN |
+|:--|--:|--:|
+| modp768 | 1.24 | 0.93 |
+| modp1024 | 1.18 | 0.68 |
+| modp1536 | 0.91 | 0.42 |
+| modp2048 | 0.81 | 0.34 |
+| modp3072 | 0.77 | 0.35 |
+| modp4096 | 0.75 | 0.34 |
+| modp6144 | 0.71 | 0.31 |
+| modp8192 | 0.69 | 0.29 |
+
+These results should be interpreted with care due to how different
+engines optimize code and how the code executes on different
+platforms. They could be summarized to say that one may expect a
+speedup of at least 20% with pure TypeScript and 65% with
+WebAssembly. It seems we also get a speedup of 10%-15% relative
+[Ristretto](https://ristretto.group) bigint compiled to WASM, but this
+is an even less robust comparison that may be due to a number of
+factors. Please inform us if you perform benchmarks!
+
+## Prerequisites
+
+Installation instructions are given for Ubuntu 22.04. Adapt as needed.
 
 ```
 # Building tools.
@@ -23,30 +69,19 @@ npm i
 
 ```
 
-## Usage
-
-Clone this repository and compile TypeScript yourself with your
-favorite options and target or grab one of the compiled JavaScript
-files in `compiled/`.
-
-This repository is intentionally minimalistic, since any user is
-likely to embed our source into an application with their own tool
-chain.
-
 ## Source Code
 
-The source code is compiled from a subset of the [Verificatum
+The source code is derived from a subset of the [Verificatum
 TypeScript library
 (VTS)](https://github.com/verificatum/verificatum-vts) repository and
 found in `src/`. The files with the suffix `.dts` are not stand-alone
 compilable TypeScript files. They are indended to be appended to the
-library to build and run the test suite as explained in the
-`Makefile`.
+library to build and run the test suite as explained in `Makefile`.
 
 The postfix of each file indicates if pure TypeScript used, or
 WebAssembly is used for the `muladd_loop` function. It also gives the
-wordsize used internally, e.g., the postfix `p28` means that pure
-TypeScript is used and that the wordsize is 28 bits. Both are internal
+wordsize used internally, e.g., the postfix `p30` means that pure
+TypeScript is used and that the wordsize is 30 bits. Both are internal
 properties and should only influence running time and memory
 requirements. The version with WebAssembly is roughly twice as fast
 for large integer exponentiation, but it allocates complete pages of
@@ -59,20 +94,18 @@ any good suggestions are then adopted in
 [VTS](https://github.com/verificatum/verificatum-vts) and released
 under MIT License in this repository whenever it is updated.
 
-## About
+## Remarks
 
-We refer the reader to the upstream project [Verificatum TypeScript
+**Documentation.** Unfortunately it seems impossible to make tsdoc
+render namespace comments correctly. If you know how to do this, then
+please let us know. We refer the user either to the code or the
+documentation generated from modules in [Verificatum TypeScript
 library (VTS)](https://github.com/verificatum/verificatum-vts) for
-technical information, history, and future. It may also be interesting
-to look at the precursor of this library, [Verificatum JavaScript
-Cryptographic library
-(VJSC)](https://github.com/verificatum/verificatum-vjsc). Several of
-the ad-hoc solutions we used are no longer necessary due to new
-language features of JavaScript and TypeScript.
+technical information.
 
-**We need a sponsor to release
+**Sponsor Us!** We need a sponsor to release
 [VTS](https://github.com/verificatum/verificatum-vts) under MIT
-License. Contact us if you are interested in this.**
+License. Contact us if you are interested in this.
 
 ## License
 
@@ -109,4 +142,5 @@ the support for the release of the big integer arithmetic routines of
 this library under MIT license.
 
 We thank Torbjörn Granlund for helpful advise about the big integer
-arithmetic code.
+arithmetic code. We thank Javier Cabrera Arteaga and Aman Sharma for
+advise about TypeScript, JavaScript, and WebAssembly.

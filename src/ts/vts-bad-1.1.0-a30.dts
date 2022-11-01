@@ -24,26 +24,408 @@ export namespace verificatum {
 
     export namespace dev {
 
+        export namespace bench {
+
+            export namespace util {
+
+                /**
+                 * Provides formatting functions for benchmarks.
+                 * TSDOC_MODULE
+                 */
+
+                /**
+                 * Returns a string representation of the today's date.
+                 * @returns Today's date.
+                 */
+                export function today(): string {
+                    const today: Date = new Date();
+                    const yyyy: uint32_t = today.getFullYear();
+                    const mm: uint32_t = today.getMonth() + 1;
+                    const dd: uint32_t = today.getDate();
+
+                    // let: mms;
+                    // if (mm < 10) {
+                    //     mms = "0" + mm;
+                    // }
+                    // if (dd < 10) {
+                    //     dd = "0" + dd;
+                    // }
+                    return `${yyyy}-${mm}-${dd}`;
+                }
+
+                /**
+                 * Returns a list of indices.
+                 *
+                 * @param maxWidth - Maximum index.
+                 * @returns List of indices.
+                 */
+                export function getIndices(maxWidth: size_t): int32_t[] {
+                    const indices: int32_t[] = [];
+                    for (let i: size_t = 0; i < maxWidth; i++) {
+                        indices[i] = i + 1;
+                    }
+                    return indices;
+                }
+
+                const txtPad: size_t = 16;
+                const numPad: size_t = 8;
+
+                /**
+                 * Formats a list of benchmark results as a text table.
+                 *
+                 * @param pGroupNames - List of group names.
+                 * @param results - List of running times.
+                 * @returns Text output.
+                 */
+                export function grpTableTXT(pGroupNames: string[], results: float64_t[]):
+                string {
+                    let s: string = "Group".padEnd(txtPad, " ") + "ms / exp\n";
+                    for (let i: size_t = 0; i < results.length; i++) {
+                        s += pGroupNames[i].padEnd(txtPad, " ");
+                        s += results[i].toFixed(1).toString().padStart(numPad) + "\n";
+                    }
+                    return s;
+                }
+
+                /**
+                 * Formats a list of benchmark results as a HTML table.
+                 *
+                 * @param pGroupNames - List of group names.
+                 * @param results - List of running times.
+                 * @returns HTML code for output.
+                 */
+                export function grpTableHTML(pGroupNames: string[], results: float64_t[]):
+                string {
+                    let s: string = "<table>\n";
+                    s += "<tr>" +
+                        "<th>Group</th>" +
+                        "<th>ms / exp</th>" +
+                        "</tr>\n";
+                    for (let i: size_t = 0; i < results.length; i++) {
+                        s += "<tr>";
+                        s += "<td>" + pGroupNames[i] + "</td>";
+                        s += "<td style=\"text-align:right\">";
+                        s += results[i].toFixed(1);
+                        s += "</td>";
+                        s += "</tr>\n";
+                    }
+                    s += "</table>";
+                    return s;
+                }
+
+                /**
+                 * Returns HTML code for a header row.
+                 *
+                 * @param header - Header string.
+                 * @returns Header row.
+                 */
+                export function grpIntHeaderHTML(header: string, indices: int32_t[]): string {
+                    let s: string = "<tr>\n<th>Group \\ " + header + "</th>\n";
+                    for (let i: size_t = 0; i < indices.length; i++) {
+                        s += "<th>" + indices[i] + "</th>\n";
+                    }
+                    s += "</tr><h>\n";
+                    return s;
+                }
+
+                /**
+                 * Returns HTML code for a row of results.
+                 *
+                 * @param pGroupName - Name of a group.
+                 * @param rowResults - Row of results.
+                 * @returns Result row.
+                 */
+                export function grpIntRowHTML(pGroupName: string, rowResults: float64_t[]):
+                string {
+                    let s: string = "<tr>\n<td>" + pGroupName + "</td>\n";
+                    for (let i: size_t = 0; i < rowResults.length; i++) {
+                        s += "<td style=\"text-align:right\">";
+                        s += rowResults[i].toFixed(1);
+                        s += "</td>\n";
+                    }
+                    s += "</tr>\n";
+                    return s;
+                }
+
+                /**
+                 * Returns HTML code for table of results.
+                 *
+                 * @param header - Name of a group.
+                 * @param indices - Indices
+                 * @param pGroupNames - List of group names.
+                 * @param results - Table of running times.
+                 * @returns HTML code for the given results.
+                 */
+                export function grpIntTableHTML(header: string,
+                                                indices: int32_t[],
+                                                pGroupNames: string[],
+                                                results: float64_t[][]): string {
+                    let s: string = "<table>\n";
+                    s += grpIntHeaderHTML(header, indices);
+                    for (let i: size_t = 0; i < results.length; i++) {
+                        s += grpIntRowHTML(pGroupNames[i], results[i]);
+                    }
+                    s += "</table>";
+                    return s;
+                }
+
+                /**
+                 * Returns text for a header row.
+                 *
+                 * @param header - Header string.
+                 * @returns Header row.
+                 */
+                export function grpIntHeaderTXT(header: string, indices: int32_t[]): string {
+                    let s: string = ("Group \\ " + header).padEnd(txtPad, " ");
+                    for (let i: size_t = 0; i < indices.length; i++) {
+                        s += indices[i].toString().padStart(numPad, " ");
+                    }
+                    s += "\n";
+                    return s;
+                }
+
+                /**
+                 * Returns text for a row of results.
+                 *
+                 * @param pGroupName - Name of a group.
+                 * @param rowResults - Row of results.
+                 * @returns Result row.
+                 */
+                export function grpIntRowTXT(pGroupName: string, rowResults: float64_t[]):
+                string {
+                    let s: string = pGroupName.padEnd(txtPad, " ");
+                    for (let i: size_t = 0; i < rowResults.length; i++) {
+                        s += rowResults[i].toFixed(1).toString().padStart(numPad, " ");
+                    }
+                    s += "\n";
+                    return s;
+                }
+
+                /**
+                 * Returns  text for table of results.
+                 *
+                 * @param header - Name of a group.
+                 * @param indices - Indices
+                 * @param pGroupNames - List of group names.
+                 * @param results - Table of running times.
+                 * @returns Text for the given results.
+                 */
+                export function grpIntTableTXT(header: string,
+                                               indices: int32_t[],
+                                               pGroupNames: string[],
+                                               results: float64_t[][]): string {
+                    let s: string = grpIntHeaderTXT(header, indices);
+                    for (let i: size_t = 0; i < results.length; i++) {
+                        s += grpIntRowTXT(pGroupNames[i], results[i]);
+                    }
+                    return s;
+                }
+
+                /**
+                 * Abstract test suite.
+                 */
+                export abstract class AbstractSuite {
+
+                    statDist: size_t;
+                    maxWidth: size_t;
+
+                    grpTable: (pGroupNames: string[], results: number[]) => string;
+                    grpIntTable: (header: string,
+                                  indices: int32_t[],
+                                  pGroupNames: string[],
+                                  results: number[][]) => string;
+
+                    /**
+                     * Constructs a test suite.
+                     *
+                     * @param statDist - Statistical distance.
+                     * @param maxWidth - Maximal width of ciphertexts.
+                     * @param seed - Seed for pseudo random generator.
+                     */
+                    constructor(statDist: size_t,
+                                maxWidth: size_t,
+                                outputFormat: string) {
+                        this.statDist = statDist;
+                        this.maxWidth = maxWidth;
+
+                        if (outputFormat == "txt") {
+                            this.grpTable = grpTableTXT;
+                            this.grpIntTable = grpIntTableTXT;
+                        } else {
+                            this.grpTable = grpTableHTML;
+                            this.grpIntTable = grpIntTableHTML;
+                        }
+                    }
+
+                    /**
+                     * Array of names of available benchmarks.
+                     *
+                     * @returns Array of benchmark names.
+                     */
+                    abstract benchmarks(): string[];
+
+                    /**
+                     * Runs a given benchmark.
+                     *
+                     * @param command - Name of benchmark.
+                     * @param minSamples - Minimal number of samples needed for each
+                     * benchmark.
+                     * @returns Command and result as a formatted string.
+                     */
+                    abstract bench(command: string, minSamples: size_t): string[];
+                }
+            }
+
+            export namespace arithm {
+                import AbstractSuite = verificatum.dev.bench.util.AbstractSuite;
+                import LI = verificatum.arithm.LI;
+                import ModPowAlg = verificatum.arithm.ModPowAlg;
+
+                /**
+                 * Returns a fixed integer modulo the modulus which does not have any
+                 * particular algebraic meaning. More precisely, if b is the number of
+                 * bits in the modulus, then B = (b + 7) / 8 and the byte array formed
+                 * as [0 & 0xff, 1 & 0xff, 2 & 0xff,...,(2B-1) & 0xff] is interpreted
+                 * as an integer which is reduced modulo the modulus before it is
+                 * returned.
+                 *
+                 * @param modulus Modulus.
+                 */
+                function unpredictableLI(modulus: LI): LI {
+                    const len: size_t = 2 * Math.floor((modulus.bitLength() + 7) / 8);
+                    const bytes: uint8_t[] = [];
+                    for (let i: size_t = 0; i < len; i++) {
+                	bytes[i] = i & 0xff;
+                    }
+                    const x: LI = new LI(bytes);
+                    return x.mod(modulus);
+                }
+
+                /**
+                 * Executes a benchmark of modular exponentiation in this group.
+                 *
+                 * @param modulus - Modulus.
+                 * @param minSamples - Minimal number of samples.
+                 * @param algo - Algorithm used for exponentiation.
+                 * @returns Average number of milliseconds per exponentiation.
+                 */
+                export function bench_modPow_inner(modulus: LI,
+                                                   minSamples: size_t,
+                                                   algo: ModPowAlg): float64_t {
+                    let x: LI = unpredictableLI(modulus);
+                    const start: float64_t = time_ms();
+                    for (let i: size_t = 0; i < minSamples; i++) {
+                        x = x.modPow(x, modulus, algo);
+                    }
+                    return (time_ms() - start) / minSamples;
+                }
+
+                /**
+                 * Executes a benchmark of exponentiation in all named groups and
+                 * returns a list of running times.
+                 *
+                 * @param minSamples - Minimal number of samples.
+                 * @param algo - Algorithm used for exponentiation.
+                 * @returns Average number of milliseconds per exponentiation.
+                 */
+                export function bench_modPow(moduli: LI[],
+                                             minSamples: size_t,
+                                             algo: size_t): float64_t[] {
+                    const results: float64_t[] = [];
+                    for (let i: size_t = 0; i < moduli.length; i++) {
+                        results[i] = bench_modPow_inner(moduli[i], minSamples, algo);
+                    }
+                    return results;
+                }
+
+                export const Primes_named: Map<string, string> = new Map<string, string>();
+
+                Primes_named.set("modp768", "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A63A3620FFFFFFFFFFFFFFFF");
+                Primes_named.set("modp1024", "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE65381FFFFFFFFFFFFFFFF");
+                Primes_named.set("modp1536", "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFF");
+                Primes_named.set("modp2048", "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA051015728E5A8AACAA68FFFFFFFFFFFFFFFF");
+                Primes_named.set("modp3072", "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA051015728E5A8AAAC42DAD33170D04507A33A85521ABDF1CBA64ECFB850458DBEF0A8AEA71575D060C7DB3970F85A6E1E4C7ABF5AE8CDB0933D71E8C94E04A25619DCEE3D2261AD2EE6BF12FFA06D98A0864D87602733EC86A64521F2B18177B200CBBE117577A615D6C770988C0BAD946E208E24FA074E5AB3143DB5BFCE0FD108E4B82D120A93AD2CAFFFFFFFFFFFFFFFF");
+                Primes_named.set("modp4096", "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA051015728E5A8AAAC42DAD33170D04507A33A85521ABDF1CBA64ECFB850458DBEF0A8AEA71575D060C7DB3970F85A6E1E4C7ABF5AE8CDB0933D71E8C94E04A25619DCEE3D2261AD2EE6BF12FFA06D98A0864D87602733EC86A64521F2B18177B200CBBE117577A615D6C770988C0BAD946E208E24FA074E5AB3143DB5BFCE0FD108E4B82D120A92108011A723C12A787E6D788719A10BDBA5B2699C327186AF4E23C1A946834B6150BDA2583E9CA2AD44CE8DBBBC2DB04DE8EF92E8EFC141FBECAA6287C59474E6BC05D99B2964FA090C3A2233BA186515BE7ED1F612970CEE2D7AFB81BDD762170481CD0069127D5B05AA993B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199FFFFFFFFFFFFFFFF");
+                Primes_named.set("modp6144", "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA051015728E5A8AAAC42DAD33170D04507A33A85521ABDF1CBA64ECFB850458DBEF0A8AEA71575D060C7DB3970F85A6E1E4C7ABF5AE8CDB0933D71E8C94E04A25619DCEE3D2261AD2EE6BF12FFA06D98A0864D87602733EC86A64521F2B18177B200CBBE117577A615D6C770988C0BAD946E208E24FA074E5AB3143DB5BFCE0FD108E4B82D120A92108011A723C12A787E6D788719A10BDBA5B2699C327186AF4E23C1A946834B6150BDA2583E9CA2AD44CE8DBBBC2DB04DE8EF92E8EFC141FBECAA6287C59474E6BC05D99B2964FA090C3A2233BA186515BE7ED1F612970CEE2D7AFB81BDD762170481CD0069127D5B05AA993B4EA988D8FDDC186FFB7DC90A6C08F4DF435C93402849236C3FAB4D27C7026C1D4DCB2602646DEC9751E763DBA37BDF8FF9406AD9E530EE5DB382F413001AEB06A53ED9027D831179727B0865A8918DA3EDBEBCF9B14ED44CE6CBACED4BB1BDB7F1447E6CC254B332051512BD7AF426FB8F401378CD2BF5983CA01C64B92ECF032EA15D1721D03F482D7CE6E74FEF6D55E702F46980C82B5A84031900B1C9E59E7C97FBEC7E8F323A97A7E36CC88BE0F1D45B7FF585AC54BD407B22B4154AACC8F6D7EBF48E1D814CC5ED20F8037E0A79715EEF29BE32806A1D58BB7C5DA76F550AA3D8A1FBFF0EB19CCB1A313D55CDA56C9EC2EF29632387FE8D76E3C0468043E8F663F4860EE12BF2D5B0B7474D6E694F91E6DCC4024FFFFFFFFFFFFFFFF");
+                Primes_named.set("modp8192", "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA051015728E5A8AAAC42DAD33170D04507A33A85521ABDF1CBA64ECFB850458DBEF0A8AEA71575D060C7DB3970F85A6E1E4C7ABF5AE8CDB0933D71E8C94E04A25619DCEE3D2261AD2EE6BF12FFA06D98A0864D87602733EC86A64521F2B18177B200CBBE117577A615D6C770988C0BAD946E208E24FA074E5AB3143DB5BFCE0FD108E4B82D120A92108011A723C12A787E6D788719A10BDBA5B2699C327186AF4E23C1A946834B6150BDA2583E9CA2AD44CE8DBBBC2DB04DE8EF92E8EFC141FBECAA6287C59474E6BC05D99B2964FA090C3A2233BA186515BE7ED1F612970CEE2D7AFB81BDD762170481CD0069127D5B05AA993B4EA988D8FDDC186FFB7DC90A6C08F4DF435C93402849236C3FAB4D27C7026C1D4DCB2602646DEC9751E763DBA37BDF8FF9406AD9E530EE5DB382F413001AEB06A53ED9027D831179727B0865A8918DA3EDBEBCF9B14ED44CE6CBACED4BB1BDB7F1447E6CC254B332051512BD7AF426FB8F401378CD2BF5983CA01C64B92ECF032EA15D1721D03F482D7CE6E74FEF6D55E702F46980C82B5A84031900B1C9E59E7C97FBEC7E8F323A97A7E36CC88BE0F1D45B7FF585AC54BD407B22B4154AACC8F6D7EBF48E1D814CC5ED20F8037E0A79715EEF29BE32806A1D58BB7C5DA76F550AA3D8A1FBFF0EB19CCB1A313D55CDA56C9EC2EF29632387FE8D76E3C0468043E8F663F4860EE12BF2D5B0B7474D6E694F91E6DBE115974A3926F12FEE5E438777CB6A932DF8CD8BEC4D073B931BA3BC832B68D9DD300741FA7BF8AFC47ED2576F6936BA424663AAB639C5AE4F5683423B4742BF1C978238F16CBE39D652DE3FDB8BEFC848AD922222E04A4037C0713EB57A81A23F0C73473FC646CEA306B4BCBC8862F8385DDFA9D4B7FA2C087E879683303ED5BDD3A062B3CF5B3A278A66D2A13F83F44F82DDF310EE074AB6A364597E899A0255DC164F31CC50846851DF9AB48195DED7EA1B1D510BD7EE74D73FAF36BC31ECFA268359046F4EB879F924009438B481C6CD7889A002ED5EE382BC9190DA6FC026E479558E4475677E9AA9E3050E2765694DFC81F56E880B96E7160C980DD98EDD3DFFFFFFFFFFFFFFFFF");
+
+                /**
+                 * Test suite for arithmetic library.
+                 */
+                export class ArithmSuite extends AbstractSuite {
+
+                    benchmarks(): string[] {
+                        return [
+                            "LI.modPow"
+                        ];
+                    }
+
+                    static getModuli(moduliNames: string[]): LI[] {
+                        const moduli: LI[] = [];
+                        for (let i = 0; i < moduliNames.length; i++) {
+                            const modulusString: string | undefined =
+                                  Primes_named.get(moduliNames[i]);
+                            if (modulusString === "undefined") {
+                                throw Error("Undefined named prime! (" + moduliNames[i] + ")");
+                            } else {
+                                moduli.push(new LI(<string>modulusString));
+                            }
+                        }
+                        return moduli;
+                    }
+
+                    bench(command: string, minSamples: size_t): string[] {
+
+                        const moduliNames: string[] = [
+                            "modp768",
+                            "modp1024",
+                            "modp1536",
+                            "modp2048",
+                            "modp3072",
+                            "modp4096",
+                            "modp6144",
+                            "modp8192"
+                        ];
+
+                        if (command.startsWith("LI.modPow")) {
+                            const moduli: LI[] = ArithmSuite.getModuli(moduliNames);
+                            const results: float64_t[] = bench_modPow(moduli,
+                                                                      minSamples,
+                                                                      ModPowAlg.smart);
+                            return [command, this.grpTable(moduliNames, results)];
+                        } else {
+                            throw Error("Unknown command! (" + command + ")");
+                        }
+                    }
+                }
+            }
+
+        }
+
         export namespace test {
 
             export namespace arithm {
                 import FixModPow = verificatum.arithm.FixModPow;
                 import LI = verificatum.arithm.LI;
+                import LIE = verificatum.arithm.LIE;
+                import MASK_ALL = verificatum.arithm.uli.MASK_ALL;
                 import ModPowAlg = verificatum.arithm.ModPowAlg;
                 import ModPowProd = verificatum.arithm.ModPowProd;
+                import TWO_POW_WORDSIZE = verificatum.arithm.uli.TWO_POW_WORDSIZE;
                 import WORDSIZE = verificatum.arithm.uli.WORDSIZE;
                 import add = verificatum.arithm.uli.add;
                 import cmp = verificatum.arithm.uli.cmp;
                 import div3by2 = verificatum.arithm.uli.div3by2;
                 import div_qr = verificatum.arithm.uli.div_qr;
+                import divide = verificatum.base.divide;
                 import hex = verificatum.arithm.uli.hex;
                 import iszero = verificatum.arithm.uli.iszero;
                 import msword = verificatum.arithm.uli.msword;
                 import mul = verificatum.arithm.uli.mul;
-                import mul_mont = verificatum.arithm.li.mul_mont;
+                import mul_mont = verificatum.arithm.uli.mul_mont;
                 import neg = verificatum.arithm.uli.neg;
                 import neginvm_mont = verificatum.arithm.li.neginvm_mont;
-                import newarray = verificatum.arithm.uli.newarray;
+                import new_uli = verificatum.arithm.uli.new_uli;
                 import normalize = verificatum.arithm.uli.normalize;
                 import reciprocal_word = verificatum.arithm.uli.reciprocal_word;
                 import reciprocal_word_3by2 = verificatum.arithm.uli.reciprocal_word_3by2;
@@ -63,22 +445,17 @@ export namespace verificatum {
 
                 const liprefix: string = "verificatum.arithm.uli";
 
-                const MASK_ALL: word_t = (1 << WORDSIZE) - 1;
-                const MASK_ALL_2: [word_t, word_t, word_t] = [MASK_ALL, MASK_ALL, 0];
-                const MASK_ALL_3: [word_t, word_t, word_t] = [MASK_ALL, MASK_ALL, MASK_ALL];
+                function INSECURErandom_uli_t(bitLength: size_t): uli_t {
 
-                function INSECURErandom_uli_t(bitLength: size_t) {
-
-                    const noWords: size_t =
-                          Math.floor((bitLength + 30 - 1) / 30);
-                    const zeroBits: size_t = noWords * 30 - bitLength;
+                    const noWords: size_t = divide((bitLength + WORDSIZE - 1), WORDSIZE);
+                    const zeroBits: size_t = noWords * WORDSIZE - bitLength;
 
                     const x: uli_t = [];
                     for (let i: size_t = 0; i < noWords; i++) {
-                        x[i] = Math.floor(Math.random() * 0x40000000);
-                        x[i] &= 0x3fffffff;
+                        x[i] = Math.floor(Math.random() * TWO_POW_WORDSIZE);
+                        x[i] &= MASK_ALL;
                     }
-                    x[x.length - 1] &= 0x3fffffff >>> zeroBits;
+                    x[x.length - 1] &= MASK_ALL >>> zeroBits;
                     normalize(x);
 
                     return x;
@@ -124,14 +501,14 @@ export namespace verificatum {
                     }
                     tc.start([liprefix + ` (neginvm_mont${ex})`], tc.testTime);
 
-                    // tpw = 2^30
-                    const tpw: uli_t = [0x0, 0x1];
+                    // tpw = 2^WORDSIZE
+                    const tpw: uli_t = [0x0, 0x1, 0];
 
                     const nw: uli_t = [0, 0];
                     const m: uli_t = [0];
                     const w: uli_t = [0];
-                    const p: uli_t = newarray(m.length + tpw.length + 2);
-                    const q: uli_t = newarray(Math.max(0, m.length - tpw.length) + 1);
+                    const p: uli_t = [0, 0, 0, 0, 0];
+                    const q: uli_t = [0, 0, 0, 0];
 
                     // This is exhaustive when WORDSIZE < 2^20. Compile with
                     // WORDSIZE=20 to run it this way.
@@ -139,23 +516,23 @@ export namespace verificatum {
 
                     for (let m0: word_t = 1; m0 < max_m0; m0 += 2) {
 
-                        // m = m0 mod 2^30
+                        // m = m0 mod 2^WORDSIZE
                         m[0] = m0;
 
                         // w = -m^(-1) mod m
                         const w0: word_t = neginvm_mont(m);
                         w[0] = w0;
 
-                        // nw = m^(-1) mod 2^30
-                        sub(nw, tpw, w)
+                        // nw = m^(-1) mod 2^WORDSIZE
+                        sub(nw, tpw, w);
 
                         // p = m * m^(-1)
                         mul(p, m, nw);
 
-                        // p = p mod 2^30
+                        // p = p mod 2^WORDSIZE
                         div_qr(q, p, tpw);
 
-                        // -m^(-1) * m = 1 mod 2^30
+                        // -m^(-1) * m = 1 mod 2^WORDSIZE
                         if (cmp(p, [1]) != 0) {
                             tc.error("Incorrect Montgomery inverse!" +
                                      "\nb = 0x" + hex(tpw) +
@@ -167,17 +544,21 @@ export namespace verificatum {
                 }
 
                 export function test_reciprocal_word(tc: TestContext): void {
-                    tc.start([liprefix + " (reciprocal_word - exhaustive)"], tc.testTime);
+                    let ex: string = "";
+                    if (WORDSIZE < 22) {
+                        ex = " - exhaustive";
+                    }
+                    tc.start([liprefix + ` (reciprocal_word${ex})`], tc.testTime);
 
-                    const d: uli_t = [0];
+                    const d: uli_t = [0, 0];
                     const v: uli_t = [0, 0];
                     const p: uli_t = [0, 0, 0];
                     const r: uli_t = [0, 0, 0];
 
-                    // This is exhaustive.
-                    let i: word_t = 0;
-                    while (i < (1 << (WORDSIZE - 1))) {
+                    const max_i: size_t = 1 << (Math.min(20, WORDSIZE) - 1);
 
+                    let i: word_t = 0;
+                    while (i < max_i) {
                         d[0] = i;
                         d[0] |= (1 << (WORDSIZE - 1));
 
@@ -193,10 +574,12 @@ export namespace verificatum {
                         // p = (v + 2^WORDSIZE) * d
                         mul(p, v, d);
 
+                        const MASK_ALL_2: uli_t = [MASK_ALL, MASK_ALL, 0];
+
                         // 2^(2 * WORDSIZE) - 1 - p
                         sub(r, MASK_ALL_2, p);
                         if (cmp(r, d) >= 0) {
-                            tc.error("Too small reciprocal!" +
+                            tc.error("Too small reciprocal in reciprocal word!" +
                                      "\nd = 0x" + hex(d) +
                                      "\nr = 0x" + hex(r) +
                                      "\nv = " + v[0]);
@@ -211,7 +594,7 @@ export namespace verificatum {
                           tc.start([liprefix + " (reciprocal_word_3by2)"], tc.testTime);
 
                     const v: uli_t = [0, 0];
-                    const p: uli_t = [0, 0, 0, 0];
+                    const p: uli_t = [0, 0, 0, 0, 0];
                     const r: uli_t = [0, 0, 0, 0];
 
                     while (!tc.done(endTime)) {
@@ -219,6 +602,7 @@ export namespace verificatum {
                         // Divisor with leading bit set.
                         const d: uli_t = INSECURErandom_uli_t(2 * WORDSIZE);
                         d[1] |= (1 << (WORDSIZE - 1));
+                        d[2] = 0;
 
                         // 3by2 reciprocal of d.
                         v[0] = reciprocal_word_3by2(d);
@@ -232,10 +616,12 @@ export namespace verificatum {
                         // p = (v + 2^(2 * WORDSIZE)) * d
                         mul(p, v, d);
 
+                        const MASK_ALL_3: uli_t = [MASK_ALL, MASK_ALL, MASK_ALL, 0];
+
                         // 2^(3 * WORDSIZE) - 1 - p
                         sub(r, MASK_ALL_3, p);
                         if (cmp(r, d) >= 0) {
-                            tc.error("Too small reciprocal!" +
+                            tc.error("Too small reciprocal word 3by2!" +
                                      "\nd = 0x" + hex(d) +
                                      "\nr = 0x" + hex(r) +
                                      "\nv = " + v[0]);
@@ -252,7 +638,7 @@ export namespace verificatum {
                     let v: word_t;
                     let q: word_t;
                     const p: uli_t = [0, 0, 0, 0];
-                    const r: uli_t = [0, 0];
+                    const r: uli_t = [0, 0, 0];
 
                     // Negative of d in two's complement.
                     const neg_d: uli_t = [0, 0];
@@ -263,9 +649,11 @@ export namespace verificatum {
                             // Divisor with leading bit set.
                             d = INSECURErandom_uli_t(2 * WORDSIZE);
                             d[1] |= (1 << (WORDSIZE - 1));
+                            d[2] = 0;
 
                             // Dividend such that u < 2^WORDSIZE * d
-                            u = INSECURErandom_uli_t(3 * WORDSIZE);
+                            u = INSECURErandom_uli_t(4 * WORDSIZE);
+                            u[3] = 0;
 
                         } while (u[2] >= d[1] ||
                                  (u[2] == d[1] && u[1] >= d[0]));
@@ -277,20 +665,22 @@ export namespace verificatum {
                         q = div3by2(r, u, d, neg_d, v);
 
                         if (cmp(r, d) >= 0) {
-                            tc.error("Too small reciprocal!" +
+                            tc.error("Too small reciprocal in div3by2!" +
                                      "\nu = 0x" + hex(u) +
                                      "\nd = 0x" + hex(d) +
-                                     "\nq = " + q +
+                                     "\nq = 0x" + hex([q]) +
                                      "\nr = 0x" + hex(r));
                         }
 
-                        mul(p, [q], d);
+                        mul(p, [q, 0], d);
                         add(p, p, r);
+
+                        // Tweak to compare.
                         if (cmp(p, u) !== 0) {
                             tc.error("Numbers do not add up!" +
                                      "\nu = 0x" + hex(u) +
                                      "\nd = 0x" + hex(d) +
-                                     "\nq = " + q +
+                                     "\nq = 0x" + hex([q]) +
                                      "\nr = 0x" + hex(r));
                         }
                     }
@@ -305,7 +695,82 @@ export namespace verificatum {
                     test_neginvm_mont(tc);
                 }
 
+                /* eslint-disable sonarjs/cognitive-complexity */
                 const LIprefix: string = "verificatum.arithm.LI";
+
+                export function test_miller_rabin_basic(tc: TestContext): void {
+                    let e: string;
+                    tc.start([LIprefix + " (miller-rabin basic)"], tc.testTime);
+
+                    const certainty: size_t = 100;
+
+                    // Distinguish primes from non-primes for small integers.
+                    const m: size_t = small_primes[small_primes.length - 1] + 1;
+                    let i: size_t = 0;
+                    for (let n: int32_t = 0; n <= m; n++) {
+
+                        const x: LI = LI.fromNumber(n);
+                        if (n == small_primes[i]) {
+                            if (!x.isProbablePrime(certainty, tc.randomSource)) {
+                                e = "A small prime is considered a composite!"
+                                    + "\ni = " + i
+                                    + "\nx = 0x" + x.toHexString();
+                                tc.error(e);
+                            }
+                            i++;
+                        } else {
+                            if (x.isProbablePrime(certainty, tc.randomSource)) {
+                                e = "A small composite is considered a prime!"
+                                    + "\ni = " + i
+                                    + "\nn = " + n
+                                    + "\nx = 0x" + x.toHexString();
+                                tc.error(e);
+                            }
+                        }
+                    }
+
+                    // Recognize a list of large safe primes.
+                    for (let i: int32_t = 0; i < safe_primes.length; i++) {
+                        const x: LI = LI.ux(safe_primes[i]);
+                        if (!x.isProbablePrime(certainty, tc.randomSource)) {
+                            e = "A safe prime is considered a composite!"
+                                + "\ni = " + i
+                                + "\nx = 0x" + x.toHexString();
+                            tc.error(e);
+                        }
+                    }
+
+                    // Further self-testing in test_miller_rabin()
+
+                    tc.end();
+                }
+
+                export function test_miller_rabin(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t =
+                          tc.start([LIprefix + " (miller-rabin)"], tc.testTime);
+
+                    const certainty: size_t = 100;
+
+                    let i: size_t = 2;
+                    while (!tc.done(endTime)) {
+
+                        // RSA moduli are the "closest" integers to looking prime from
+                        // the point of view of a Miller-Rabin test.
+                        const p: LI = LI.getProbablePrime(i, certainty, tc.randomSource);
+                        const q: LI = LI.getProbablePrime(i, certainty, tc.randomSource);
+                        const n: LI = p.mul(q);
+                        if (n.isProbablePrime(certainty, tc.randomSource)) {
+                            e = "A composite is considered a prime!"
+                                + "\np = 0x" + p.toHexString()
+                                + "\nq = 0x" + q.toHexString()
+                                + "\nn = 0x" + n.toHexString();
+                            tc.error(e);
+                        }
+                        i++;
+                    }
+                    tc.end();
+                }
 
                 export function test_identities(tc: TestContext): void {
                     let e: string;
@@ -642,7 +1107,7 @@ export namespace verificatum {
                 export function test_division_with_zero_remainder(tc: TestContext): void {
                     let e: string;
                     const endTime: size_t =
-                          tc.start([LIprefix + " (division without remainder)"], tc.testTime);
+                          tc.start([LIprefix + " (division with zero remainder)"], tc.testTime);
 
                     const s: size_t = 100;
                     while (!tc.done(endTime)) {
@@ -653,10 +1118,9 @@ export namespace verificatum {
 
                                 const x: LI = new LI(i, tc.randomSource);
                                 let y: LI = new LI(j, tc.randomSource);
-                                while (y.iszero()) {
+                                while (y.isZero()) {
                                     y = new LI(j, tc.randomSource);
                                 }
-
                                 const p: LI = x.mul(y);
                                 const q: LI = p.div(y);
 
@@ -687,25 +1151,56 @@ export namespace verificatum {
                         while (!tc.done(endTime) && i < s) {
                             let j: size_t = 1;
                             while (!tc.done(endTime) && j < s) {
+                                for (let k: size_t = 0; k < 4; k++) {
 
-                                const x: LI = new LI(i, tc.randomSource);
-                                let y: LI = new LI(j, tc.randomSource);
-                                while (y.iszero()) {
-                                    y = new LI(j, tc.randomSource);
-                                }
+                                    let x: LI = new LI(i, tc.randomSource);
+                                    let y: LI = new LI(j, tc.randomSource);
+                                    while (y.isZero()) {
+                                        y = new LI(j, tc.randomSource);
+                                    }
 
-                                const q: LI = x.div(y);
-                                const r: LI = x.mod(y);
-                                const xx: LI = q.mul(y).add(r);
+                                    if ((k & 0x1) != 0) {
+                                        x = x.neg();
+                                    }
+                                    if ((k & 0x2) != 0) {
+                                        y = y.neg();
+                                    }
 
-                                if (!xx.equals(x)) {
-                                    e = "Division with remainder failed!"
-                                        + "\nx = 0x" + x.toHexString()
-                                        + "\ny = 0x" + y.toHexString()
-                                        + "\nq = 0x" + q.toHexString()
-                                        + "\nr = 0x" + r.toHexString()
-                                        + "\nxx = 0x" + xx.toHexString();
-                                    tc.error(e);
+                                    const q: LI = x.div(y);
+                                    const r: LI = x.remainder(y);
+                                    const xx: LI = q.mul(y).add(r);
+
+                                    if (!xx.equals(x)) {
+                                        e = "Division with remainder failed!"
+                                            + "\nx = 0x" + x.toHexString()
+                                            + "\ny = 0x" + y.toHexString()
+                                            + "\nq = 0x" + q.toHexString()
+                                            + "\nr = 0x" + r.toHexString()
+                                            + "\nxx = 0x" + xx.toHexString();
+                                        tc.error(e);
+                                    }
+
+                                    if (y.sign > 0) {
+                                        const m: LI = x.mod(y);
+                                        if (m.sign < 0) {
+                                            tc.error("Negative value after modular reduction!");
+                                        }
+                                        if (m.cmp(y) >= 0) {
+                                            tc.error("Too large value after modular reduction!");
+                                        }
+                                        const xxx: LI = q.mul(y).add(m);
+                                        const xxxx: LI = xxx.sub(y);
+
+                                        if (!xxx.equals(x) && !xxxx.equals(x)) {
+                                            e = "Modular reduction failed!"
+                                                + "\nx = 0x" + x.toHexString()
+                                                + "\ny = 0x" + y.toHexString()
+                                                + "\nq = 0x" + q.toHexString()
+                                                + "\nr = 0x" + r.toHexString()
+                                                + "\nxx = 0x" + xx.toHexString();
+                                            tc.error(e);
+                                        }
+                                    }
                                 }
                                 j++;
                             }
@@ -719,14 +1214,16 @@ export namespace verificatum {
                     let e: string;
                     const algname: string = ModPowAlg[alg];
                     const endTime: size_t =
-                        tc.start([LIprefix + ` (naive and ${algname} modpow agree)`],
+                        tc.start([LIprefix + ` (modular_sqrmul and ${algname} agree)`],
                                  tc.testTime);
 
-                    const one: LI =
-                          LI.ONE.modPow(LI.ZERO, LI.TWO);
+                    if ((alg & ModPowAlg.montgomery) != ModPowAlg.montgomery) {
+                        const one: LI =
+                              LI.ONE.modPow(LI.ZERO, LI.TWO, alg);
 
-                    if (!one.equals(LI.ONE)) {
-                        tc.error("Failed to exponentiate with zero!");
+                        if (!one.equals(LI.ONE)) {
+                            tc.error("Failed to exponentiate with zero!");
+                        }
                     }
 
                     const s: size_t = 100;
@@ -739,23 +1236,24 @@ export namespace verificatum {
                                 while (!tc.done(endTime) && k < s) {
 
                                     let z: LI = LI.ZERO;
-                                    while (z.iszero()) {
+                                    while (z.isZero()) {
                                         z = new LI(k, tc.randomSource);
 
                                         // We need an odd modulus for Montgomery
                                         // exponentiation to work at all.
-                                        if (alg == ModPowAlg.montgomery && z.getBit(0) === 0) {
+                                        if ((alg & ModPowAlg.montgomery) == ModPowAlg.montgomery
+                                            && z.getBit(0) === 0) {
                                             z = z.add(LI.ONE);
                                         }
                                     }
 
-                                    let x: LI = (new LI(i, tc.randomSource)).mod(z);
-                                    let y1: LI = new LI(j, tc.randomSource);
+                                    const x: LI = (new LI(i, tc.randomSource)).mod(z);
+                                    const y1: LI = new LI(j, tc.randomSource);
                                     const y2: LI = new LI(j, tc.randomSource);
 
                                     // Check that 1^y1 = 0 mod 1, and
                                     // 1^y1 = 1 mod z for z > 1.
-                                    let c: LI = LI.ONE.modPow(y1, z);
+                                    let c: LI = LI.ONE.modPow(y1, z, alg);
                                     if (z.equals(LI.ONE)) {
                                         if (!c.equals(LI.ZERO)) {
                                             e = "Power of one modulo one is not zero!"
@@ -766,6 +1264,8 @@ export namespace verificatum {
                                         }
                                     } else if (!c.equals(LI.ONE)) {
                                         e = "Power of one modulo modulus > 1 is not one!"
+                                            + "\nalg = " + alg
+                                            + "\none = 0x" + LI.ONE.toHexString()
                                             + "\ny1 = 0x" + y1.toHexString()
                                             + "\nz = 0x" + z.toHexString()
                                             + "\nc = 0x" + c.toHexString();
@@ -774,11 +1274,11 @@ export namespace verificatum {
 
                                     const a: LI = x.modPow(y1, z, alg);
 
-                                    // Consistency with naive modpow
-                                    let b: LI = x.modPow(y1, z, ModPowAlg.naive);
+                                    // Consistency with modular_sqrmul modpow
+                                    let b: LI = x.modPow(y1, z, ModPowAlg.modular_sqrmul);
 
                                     if (!a.equals(b)) {
-                                        e = "Modpow and naive modpow are inconsistent!"
+                                        e = "Modpow and modular_sqrmul modpow are inconsistent!"
                                             + "\nx = 0x" + x.toHexString()
                                             + "\ny1 = 0x" + y1.toHexString()
                                             + "\nz = 0x" + z.toHexString()
@@ -823,33 +1323,68 @@ export namespace verificatum {
                     let e: string;
                     const endTime: size_t = tc.start([LIprefix + " (egcd)"], tc.testTime);
 
+                    // Corner cases
+                    const x: LI = new LI(0, [0]);
+                    const y: LI = new LI(10, tc.randomSource);
+
+                    let [a, b, v]: [LI, LI, LI] = x.egcd(y);
+                    if (!a.mul(x).add(b.mul(y)).equals(v)){
+                        e = "\nx = " + x.toHexString() +
+                            "\ny = " + y.toHexString() +
+                            "\na = " + a.toHexString() +
+                            "\nb = " + b.toHexString() +
+                            "\nv = " + v.toHexString();
+                        tc.error(e);
+                    }
+
+                    [a, b, v] = y.egcd(x);
+                    if (!a.mul(y).add(b.mul(x)).equals(v)){
+                        e = "\nx = " + x.toHexString() +
+                            "\ny = " + y.toHexString() +
+                            "\na = " + a.toHexString() +
+                            "\nb = " + b.toHexString() +
+                            "\nv = " + v.toHexString();
+                        tc.error(e);
+                    }
+
                     const s: size_t = 100;
                     while (!tc.done(endTime)) {
                         let i: size_t = 1;
                         while (!tc.done(endTime) && i < s) {
                             let j: size_t = 1;
                             while (!tc.done(endTime) && j < s) {
+                                for (let u: size_t = 0; u < 4; u++) {
 
-                                const x: LI = new LI(i, tc.randomSource);
-                                const y: LI = new LI(j, tc.randomSource);
+                                    let x: LI = new LI(i, tc.randomSource);
+                                    if ((u & 0x1) != 0) {
+                                        x = x.neg();
+                                    }
+                                    let y: LI = new LI(j, tc.randomSource);
+                                    if ((u & 0x2) != 0) {
+                                        y = y.neg();
+                                    }
 
-                                const res: LI[] = x.egcd(y);
+                                    x = LI.ux("25cb408db4e4fd5380848f5a");
+                                    y = LI.ux("01ed1a5fb9258d81563fbdb853");
 
-                                const a: LI = res[0];
-                                const b: LI = res[1];
-                                const v: LI = res[2];
+                                    const res: LI[] = x.egcd(y);
 
-                                const c: LI = a.mul(x).add(b.mul(y));
+                                    const a: LI = res[0];
+                                    const b: LI = res[1];
+                                    const v: LI = res[2];
 
-                                if (!c.equals(v)) {
-                                    e = "Linear function does not give GCD!"
-                                        + "\nx = 0x" + x.toHexString()
-                                        + "\ny = 0x" + y.toHexString()
-                                        + "\na = 0x" + a.toHexString()
-                                        + "\nb = 0x" + b.toHexString()
-                                        + "\nv = 0x" + v.toHexString()
-                                        + "\nc = 0x" + c.toHexString();
-                                    tc.error(e);
+                                    const c: LI = a.mul(x).add(b.mul(y));
+
+                                    if (!c.equals(v)) {
+                                        e = "Linear function does not give GCD!"
+                                            + "\nx = 0x" + x.toHexString()
+                                            + "\ny = 0x" + y.toHexString()
+                                            + "\na = 0x" + a.toHexString()
+                                            + "\nb = 0x" + b.toHexString()
+                                            + "\nv = 0x" + v.toHexString()
+                                            + "\nc = 0x" + c.toHexString();
+                                        tc.error(e);
+                                    }
                                 }
                                 j++;
                             }
@@ -859,13 +1394,13 @@ export namespace verificatum {
                     tc.end();
                 }
 
-                export function test_legendre(tc: TestContext): void {
+                export function test_jacobi(tc: TestContext): void {
                     let e: string;
-                    const endTime: size_t = tc.start([LIprefix + " (legendre)"], tc.testTime);
+                    const endTime: size_t = tc.start([LIprefix + " (jacobi)"], tc.testTime);
 
                     const primes: LI[] = [];
                     for (let i: size_t = 0; i < safe_primes.length; i++) {
-                        primes.push(new LI(safe_primes[i]))
+                        primes.push(new LI(safe_primes[i]));
                     }
 
                     const s: size_t = 100;
@@ -877,14 +1412,16 @@ export namespace verificatum {
                             const x: LI = new LI(i, tc.randomSource);
                             const y: LI = x.neg();
 
-                            // Here we use the fact that -1 is a non-residue.
-                            const lx: sign_t = x.legendre(primes[j]);
-                            const ly: sign_t = y.legendre(primes[j]);
+                            // Here we use the fact that -1 is a non-residue for
+                            // primes.
+                            const lx: sign_t = x.jacobi(primes[j]);
+                            const ly: sign_t = y.jacobi(primes[j]);
 
-                            if ((x.iszero() && (lx !== 0 || ly !== 0)) ||
-                                (!x.iszero() &&
+                            if ((x.isZero() && (lx !== 0 || ly !== 0)) ||
+                                (!x.isZero() &&
                                  (Math.abs(lx) !== 1 || Math.abs(ly) !== 1 || lx === ly))) {
-                                e = "Computation of Legendre symbol failed!"
+                                e = "Computation of Jacobi symbol failed!"
+                                    + "\np = 0x" + primes[j].toHexString()
                                     + "\nx = 0x" + x.toHexString()
                                     + "\ny = 0x" + y.toHexString()
                                     + "\nlx = 0x" + lx
@@ -903,11 +1440,11 @@ export namespace verificatum {
 
                 export function test_modSqrt(tc: TestContext): void {
                     let e: string;
-                    const endTime: size_t = tc.start([LIprefix + " (sqrt)"], tc.testTime);
+                    const endTime: size_t = tc.start([LIprefix + " (modsqrt)"], tc.testTime);
 
                     const primes: LI[] = [];
                     for (let i: size_t = 0; i < safe_primes.length; i++) {
-                        primes.push(new LI(safe_primes[i]))
+                        primes.push(new LI(safe_primes[i]));
                     }
 
                     const s: size_t = 100;
@@ -916,12 +1453,12 @@ export namespace verificatum {
 
                         for (let j: size_t = 0; j < primes.length; j++) {
 
-                            let x: LI = new LI(i, tc.randomSource);
-                            let y: LI = x.mul(x).mod(primes[j]);
-                            let z: LI = y.modSqrt(primes[j]);
+                            const x: LI = new LI(i, tc.randomSource);
+                            const y: LI = x.mul(x).mod(primes[j]);
+                            const z: LI = y.modSqrt(primes[j]);
 
                             // We don't care which of the roots we get.
-                            let w: LI = z.mul(z).mod(primes[j]);
+                            const w: LI = z.mul(z).mod(primes[j]);
 
                             if (!w.equals(y)) {
                                 e = "Computation of square root failed!"
@@ -950,22 +1487,99 @@ export namespace verificatum {
                     let i: size_t = 1;
                     while (!tc.done(endTime)) {
 
-                        const x: LI = new LI(i, tc.randomSource);
-                        const byteArray: uint8_t[] = x.toByteArray();
-                        const y: LI = new LI(byteArray);
+                        for (let b: size_t = 0; b < 2; b++) {
 
-                        if (!x.equals(y)) {
-                            e = "Conversion failed!"
-                                + "\nx = 0x" + x.toHexString()
-                                + "\ny = 0x" + y.toHexString();
-                            tc.error(e);
-                        }
+                            // Positive and negative.
+                            let x: LI = new LI(i, tc.randomSource);
+                            if (b == 1) {
+                                x = x.neg();
+                            }
 
-                        if (i === s) {
-                            i = 1;
-                        } else {
-                            i++;
+                            // Length extension.
+                            for (let len: size_t = 0; len < 3; len++) {
+
+                                let byteArray: uint8_t[] = x.toByteArray();
+                                byteArray = x.toByteArray(byteArray.length + len);
+
+                                const y: LI = new LI(byteArray);
+
+                                if (!x.equals(y)) {
+                                    e = "Conversion failed!"
+                                        + "\nx = 0x" + x.toHexString()
+                                        + "\ny = 0x" + y.toHexString();
+                                    tc.error(e);
+                                }
+                            }
+                            if (i === s) {
+                                i = 1;
+                            } else {
+                                i++;
+                            }
                         }
+                    }
+                    tc.end();
+                }
+
+                export function test_radix(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t = tc.start([LIprefix + " (radix)"], tc.testTime);
+
+                    let i: size_t = 1;
+                    while (!tc.done(endTime)) {
+
+                        let x: LI = new LI(i, tc.randomSource);
+
+                        for (let b: size_t = 0; b < 2; b++) {
+                            if (b == 1) {
+                                x = x.neg();
+                            }
+                            for (let radix: size_t = 2; radix <= 64; radix++) {
+
+                                const signValue: [sign_t, int32_t[]] = LIE.toRadix(x, radix);
+                                const y: LI = LIE.fromRadix(signValue, radix);
+
+                                if (!y.equals(x)) {
+                                    e = "\nradix = " + radix +
+                                        "\nx = " + x.toHexString() +
+                                        "\ny = " + y.toHexString();
+                                    tc.error(e);
+                                }
+                            }
+                        }
+                        i++;
+                    }
+                    tc.end();
+                }
+
+                export function test_radix_string(tc: TestContext): void {
+                    let e: string;
+                    const endTime: size_t =
+                          tc.start([LIprefix + " (radix string)"], tc.testTime);
+
+                    let i: size_t = 1;
+                    while (!tc.done(endTime)) {
+
+                        // Operations with zero and one.
+                        let x: LI = new LI(i, tc.randomSource);
+
+                        for (let b: size_t = 0; b < 2; b++) {
+                            if (b == 1) {
+                                x = x.neg();
+                            }
+                            for (let radix: size_t = 2; radix <= 36; radix++) {
+                                const s: string = x.toString(radix);
+                                const y: LI = new LI(s, radix);
+
+                                if (!y.equals(x)) {
+                                    e = "\nradix = " + radix +
+                                        "\nx = " + x.toHexString() +
+                                        "\ns = " + s +
+                                        "\ny = " + y.toHexString();
+                                    tc.error(e);
+                                }
+                            }
+                        }
+                        i++;
                     }
                     tc.end();
                 }
@@ -1043,18 +1657,18 @@ export namespace verificatum {
 
                     tc.start([LIprefix + ` (mul_mont for word moduli${ex})`], tc.testTime);
 
-                    const bound: size_t = 1 << Math.min(8, WORDSIZE)
+                    const bound: size_t = 1 << Math.min(8, WORDSIZE);
 
-                    // m < 2^30, so we have two additional zero words.
-                    let m: LI = new LI(1, [1, 0, 0]);
+                    // m < 2^WORDSIZE, so we have two additional zero words.
+                    let m: LI = LI.create(1, [1, 0]);
 
-                    // R = b^1, where b = 2^30.
+                    // R = b^1, where b = 2^WORDSIZE.
                     const R: LI = LI.ONE.shiftLeft(WORDSIZE);
 
                     // These arrays are not normalized internally when we initialize
                     // like this.
-                    const x: LI = new LI(1, [1, 0, 0]);
-                    const y: LI = new LI(1, [1, 0, 0]);
+                    const x: LI = LI.create(1, [1, 0]);
+                    const y: LI = LI.create(1, [1, 0]);
 
                     // a must have twice as many limbs as m.
                     const uli_a: uli_t = [0, 0, 0, 0, 0, 0];
@@ -1063,7 +1677,7 @@ export namespace verificatum {
 
                         // Rmodinv = R^(-1) mod m. Always exist, since R is a power of
                         // two and m is odd.
-                        let Rmodminv: LI = R.mod(m).modInv(m);
+                        const Rmodminv: LI = R.mod(m).modInv(m);
 
                         for (let x0: word_t = 0; x0 < m0; x0 += 1) {
 
@@ -1077,11 +1691,16 @@ export namespace verificatum {
 
                                 // a = x * y * Rmodinv mod m using Montgomery
                                 // multiplication.
-                                const uli_m: uli_t = [m.value[0], 0, 0]
-                                mul_mont(uli_a, x.value, y.value, uli_m);
+                                const uli_m: uli_t = [m.value[0], 0];
+                                mul_mont(uli_a,
+                                         x.value,
+                                         y.value,
+                                         uli_m,
+                                         msword(uli_m) + 1,
+                                         neginvm_mont(uli_m));
 
                                 // a = x * y * Rmodinv mod m computed naively.
-                                let a: LI = x.mul(y).mod(m).mul(Rmodminv).mod(m);
+                                const a: LI = x.mul(y).mod(m).mul(Rmodminv).mod(m);
 
                                 if (cmp(uli_a, a.value) != 0) {
                                     e = "Montgomery multiplication failed for word moduli!"
@@ -1122,28 +1741,36 @@ export namespace verificatum {
                         // Smallest n such that m < b^n.
                         const n: size_t = msword(LI_m.value) + 1;
 
-                        // R = b^n, where b = 2^30.
-                        const LI_R: LI = LI.ONE.shiftLeft(n * 30);
+                        // R = b^n, where b = 2^WORDSIZE.
+                        const LI_R: LI = LI.ONE.shiftLeft(n * WORDSIZE);
+
+                        // Rmod = R mod m
+                        const LI_Rmod: LI = LI_R.mod(LI_m);
 
                         // Rmodinv = R^(-1) mod m. Always exist, since R is a power of
                         // two and m is odd.
-                        const LI_Rmodminv: LI = LI_R.mod(LI_m).modInv(LI_m);
+                        const LI_Rmodminv: LI = LI_Rmod.modInv(LI_m);
 
                         // Random integers 0 <= x, y < m.
                         const LI_x: LI = new LI(bitLength + 50, tc.randomSource).mod(LI_m);
                         const LI_y: LI = new LI(bitLength + 50, tc.randomSource).mod(LI_m);
 
                         // a = x * y * Rmodinv mod m using Montgomery multiplication.
-                        let uli_m: uli_t = newarray(LI_m.value.length + 2);
-                        let uli_x: uli_t = newarray(uli_m.length);
-                        let uli_y: uli_t = newarray(uli_m.length);
-                        let uli_a: uli_t = newarray(2 * uli_m.length);
+                        const uli_m: uli_t = new_uli(LI_m.value.length);
+                        const uli_x: uli_t = new_uli(uli_m.length);
+                        const uli_y: uli_t = new_uli(uli_m.length);
+                        const uli_a: uli_t = new_uli(2 * uli_m.length + 2);
 
                         set(uli_m, LI_m.value);
                         set(uli_x, LI_x.value);
                         set(uli_y, LI_y.value);
 
-                        mul_mont(uli_a, uli_x, uli_y, uli_m);
+                        mul_mont(uli_a,
+                                 uli_x,
+                                 uli_y,
+                                 uli_m,
+                                 msword(uli_m) + 1,
+                                 neginvm_mont(uli_m));
 
                         // a = x * y * Rmodinv mod m computed naively.
                         const LI_a: LI = LI_x.mul(LI_y).mod(LI_m).mul(LI_Rmodminv).mod(LI_m);
@@ -1151,6 +1778,8 @@ export namespace verificatum {
                         if (cmp(uli_a, LI_a.value) != 0) {
                             e = "Montgomery multiplication failed!"
                                 + "\nn = " + n
+                                + "\nR = 0x" + LI_R.toHexString()
+                                + "\nRmod = 0x" + LI_Rmod.toHexString()
                                 + "\nR = 0x" + LI_R.toHexString()
                                 + "\nRmodinv = 0x" + LI_Rmodminv.toHexString()
                                 + "\nm = 0x" + LI_m.toHexString()
@@ -1168,6 +1797,7 @@ export namespace verificatum {
                     }
                     tc.end();
                 }
+                /* eslint-enable sonarjs/cognitive-complexity */
 
                 export function test_LI(tc: TestContext): void {
                     test_identities(tc);
@@ -1181,16 +1811,22 @@ export namespace verificatum {
                     test_division_with_remainder(tc);
                     test_mul_mont_word(tc);
                     test_mul_mont(tc);
-                    test_modpow(tc, ModPowAlg.window);
-                    test_modpow(tc, ModPowAlg.montgomery);
+                    test_modpow(tc, ModPowAlg.montgomery_sqrmul);
+                    test_modpow(tc, ModPowAlg.modular_window);
+                    test_modpow(tc, ModPowAlg.montgomery_window);
                     test_egcd(tc);
-                    test_legendre(tc);
+                    test_jacobi(tc);
+                    test_miller_rabin_basic(tc);
+                    test_miller_rabin(tc);
                     test_modSqrt(tc);
                     test_conversion(tc);
+                    test_radix(tc);
+                    test_radix_string(tc);
                     test_shifting(tc);
                     test_hex(tc);
                 }
 
+                /* eslint-disable sonarjs/cognitive-complexity */
                 /**
                  * Compute a power-product using the given bases, exponents, and
                  * modulus. This is a naive implementation for simple use and to debug
@@ -1259,6 +1895,7 @@ export namespace verificatum {
                     }
                     tc.end();
                 }
+                /* eslint-enable sonarjs/cognitive-complexity */
 
                 export function test_FixModPow(tc: TestContext): void {
                     const prefix: string = "verificatum.arithm.FixModPow";
@@ -1266,28 +1903,32 @@ export namespace verificatum {
                     const endTime: size_t =
                           tc.start([prefix + " (agrees with naive)"], tc.testTime);
 
-                    const modulus: LI = new LI(safe_primes[0]);
+                    const m: LI = new LI(safe_primes[0]);
 
                     while (!tc.done(endTime)) {
 
-                        const basis: LI = new LI(modulus.bitLength(), tc.randomSource);
+                        const b: LI = new LI(m.bitLength(), tc.randomSource);
 
                         for (let width: size_t = 1; width <= 8; width++) {
 
-                            const fmp: FixModPow = new FixModPow(basis, modulus, 20, width);
+                            const fmp: FixModPow = new FixModPow(b, m, 20, width);
 
-                            for (let i: size_t = 1; i < modulus.bitLength() + 5; i++) {
+                            for (let i: size_t = 1; i < m.bitLength() + 5; i++) {
 
-                                const exponent: LI = new LI(i, tc.randomSource);
-                                const b: LI = fmp.modPow(exponent);
-                                const c: LI = basis.modPow(exponent, modulus);
+                                const e: LI = new LI(i, tc.randomSource);
+                                const x: LI = fmp.modPow(e);
+                                const y: LI = b.modPow(e, m);
 
-                                if (!b.equals(c)) {
-                                    const e: string =
+                                if (!x.equals(y)) {
+                                    const ee: string =
                                           "Fixed-base exponentiation is wrong!"
-                                          + "\nb = " + b.toHexString()
-                                          + "\nc = " + c.toHexString();
-                                    tc.error(e);
+                                          + "\nwidth = " + width
+                                          + "\ne = 0x" + e.toHexString()
+                                          + "\nb = 0x" + b.toHexString()
+                                          + "\nm = 0x" + m.toHexString()
+                                          + "\nx = 0x" + x.toHexString()
+                                          + "\ny = 0x" + y.toHexString();
+                                    tc.error(ee);
                                 }
                             }
                         }
@@ -1422,6 +2063,7 @@ export namespace verificatum {
 
         }
 
+        import divide = verificatum.base.divide;
         import hex = verificatum.arithm.uli.hex;
         import hexbyte = verificatum.base.hexbyte;
 
@@ -1443,12 +2085,12 @@ export namespace verificatum {
          * @returns Epoch in seconds.
          */
         export function time(): size_t {
-            return Math.floor(time_ms() / 1000);
+            return divide(time_ms(), 1000);
         }
 
         /**
          * Returns a hexadecimal representation of this input
-         * array made for 30 = 28. It separates words by spaces.
+         * array made for WORDSIZE = 28. It separates words by spaces.
          *
          * @param x - Array of words.
          * @returns Hexadecimal string representation of the array.
@@ -1492,22 +2134,22 @@ export namespace verificatum {
         }
 
         const hexToBinMap: Map<string, string> = new Map<string, string>();
-        hexToBinMap.set('0', '0000');
-        hexToBinMap.set('1', '0001');
-        hexToBinMap.set('2', '0010');
-        hexToBinMap.set('3', '0011');
-        hexToBinMap.set('4', '0100');
-        hexToBinMap.set('5', '0101');
-        hexToBinMap.set('6', '0110');
-        hexToBinMap.set('7', '0111');
-        hexToBinMap.set('8', '1000');
-        hexToBinMap.set('9', '1001');
-        hexToBinMap.set('A', '1010');
-        hexToBinMap.set('B', '1011');
-        hexToBinMap.set('C', '1100');
-        hexToBinMap.set('D', '1101');
-        hexToBinMap.set('E', '1110');
-        hexToBinMap.set('F', '1111');
+        hexToBinMap.set("0", "0000");
+        hexToBinMap.set("1", "0001");
+        hexToBinMap.set("2", "0010");
+        hexToBinMap.set("3", "0011");
+        hexToBinMap.set("4", "0100");
+        hexToBinMap.set("5", "0101");
+        hexToBinMap.set("6", "0110");
+        hexToBinMap.set("7", "0111");
+        hexToBinMap.set("8", "1000");
+        hexToBinMap.set("9", "1001");
+        hexToBinMap.set("A", "1010");
+        hexToBinMap.set("B", "1011");
+        hexToBinMap.set("C", "1100");
+        hexToBinMap.set("D", "1101");
+        hexToBinMap.set("E", "1110");
+        hexToBinMap.set("F", "1111");
 
         /**
          * Converts a hexadecimal string into a binary string.

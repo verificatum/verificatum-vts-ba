@@ -1,6 +1,6 @@
 {
     "name": "@verificatum/verificatum-vts-ba",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Verificatum TypeScript Big Integer library",
     "private": true,
     "type": "module",
@@ -8,8 +8,10 @@
         "packages/*"
     ],
     "scripts": {
-        "build": "tsc --build",
-        "lint": "eslint src/**/*.ts"
+        "build": "make clean; make jfiles",
+        "bench": "make clean; make bench",
+        "lint": "make clean; make lint",
+        "doc": "make clean; make doc"
     },
     "devDependencies": {
         "@types/node": "^16.11.21",

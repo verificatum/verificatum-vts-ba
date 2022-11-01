@@ -1,4 +1,4 @@
-import * as node_crypto from 'crypto';
+import * as node_crypto from "crypto";
 
 // Copyright 2008-2022 Douglas Wikstrom
 //
@@ -27,25 +27,12 @@ export namespace verificatum {
         import RandomSource = verificatum.base.RandomSource;
 
         /**
-         * Random source based on the builtin random device of NodeJS. {@link
+         * Wrapper of the built-in random device of NodeJS. {@link
          * https://nodejs.org/api/crypto.html#cryptorandombytessize-callback}
          */
         export class NodeRandomDevice extends RandomSource {
-
-            constructor() {
-                super();
-            }
-
-            getBytes(len: size_t): uint8_t[] {
-
-                const bytes: uint8_t[] = [];
-
-                const byteBuffer: Buffer = node_crypto.randomBytes(len);
-
-                for (let i: size_t = 0; i < byteBuffer.length; i++) {
-                    bytes[i] = byteBuffer[i];
-                }
-                return bytes;
+            protected getRandomUint8Array(len: size_t): Uint8Array {
+                return node_crypto.randomBytes(len);
             }
         }
 

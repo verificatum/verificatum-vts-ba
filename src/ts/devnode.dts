@@ -26,10 +26,16 @@ export namespace verificatum {
 
     export namespace devnode {
 
+	import WORDSIZE = verificatum.arithm.uli.WORDSIZE;
+	import wasm = verificatum.arithm.uli.wasm;
         import NodeRandomDevice = verificatum.node.NodeRandomDevice;
         import RandomSource = verificatum.base.RandomSource;
+
         import TestContext = verificatum.dev.test.TestContext;
         import test_arithm = verificatum.dev.test.arithm.test_arithm;
+
+	import AbstractSuite = verificatum.dev.bench.util.AbstractSuite;
+	import ArithmSuite = verificatum.dev.bench.arithm.ArithmSuite;
 
         /**
          * Testing and timing functions.
@@ -82,9 +88,25 @@ export namespace verificatum {
 
                 test_arithm(ntc);
 
-            } else if (operation == "bench") {
+            } else if (operation == "bench_arithm") {
 
-                process.stdout.write(`\nNo benchmarking routines are implemented yet!\n`);
+		const maxWidth: size_t = 3;
+		const minSamples: size_t = 7;
+
+		let suite: AbstractSuite =
+		    new ArithmSuite(statDist, maxWidth, "txt");
+
+		process.stdout.write("\nBenchmarks for VTS-BA in Node");
+		process.stdout.write(`\nWORDSIZE=${WORDSIZE}\nWASM=${wasm}\n`);
+
+		const bm: string[] = suite.benchmarks();
+
+		for (let i: size_t = 0; i < bm.length; i++) {
+		    const s: string = "Benchmark: " + bm[i];
+		    process.stdout.write("\n" + s + "\n");
+		    process.stdout.write("".padStart(s.length, "-") + "\n");
+		    process.stdout.write(suite.bench(bm[i], minSamples)[1]);
+		}
             }
         }
     }
