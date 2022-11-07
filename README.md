@@ -18,7 +18,7 @@ library (JSBN)](http://www-cs-students.stanford.edu/~tjw/jsbn) we
 provide a drop-in wrapper class with identical API. The main reasons
 to switch to VTS-BA is that it is written in TypeScript with modern
 language constructs, and is more robust, thoroughly tested and
-documented. It is faster as well.
+documented, but it is faster as well.
 
 JSBN lacks proper documentation. Thus, although our class is a trivial
 wrapper we rely on users to give feedback if we implemented anything
@@ -45,9 +45,9 @@ engines optimize code and how the code executes on different
 platforms. They could be summarized to say that one may expect a
 speedup of at least 20% with pure TypeScript and 65% with
 WebAssembly. It seems we also get a speedup of 10%-15% relative
-[Ristretto](https://ristretto.group) bigint compiled to WASM, but this
-is an even less robust comparison that may be due to a number of
-factors. Please inform us if you perform benchmarks!
+[`num_bigint`](https://docs.rs/num-bigint/latest/num_bigint) compiled
+to WASM, but this is an even less robust comparison that may be due to
+a number of factors. Please inform us if you perform benchmarks!
 
 ## Prerequisites
 
