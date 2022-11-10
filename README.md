@@ -24,7 +24,7 @@ JSBN lacks proper documentation. Thus, although our class is a trivial
 wrapper we rely on users to give feedback if we implemented anything
 differently.
 
-*Benchmarks.* Modular exponentiation is the most relevant
+**Benchmarks.** Modular exponentiation is the most relevant
 operation. The following graph summarizes the running times of modular
 expoentiation in Node on our machine for: (1)
 [JSBN](http://www-cs-students.stanford.edu/~tjw/jsbn), (2) pure
