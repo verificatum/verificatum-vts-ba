@@ -28,10 +28,10 @@ differently.
 operation. The following graph summarizes the running times of modular
 expoentiation in Node on our machine for: (1)
 [JSBN](http://www-cs-students.stanford.edu/~tjw/jsbn), (2) pure
-TypeScript VTS, (3) VTS with a snipped of WebAssembly, and (4) the
-Rust library [num-bigint](https://github.com/rust-num/num-bigint)
-compiled to WebAssembly. For larger bitlengths VTS is faster than
-num-bigint.
+TypeScript VTS, (4) the Rust library
+[num-bigint](https://github.com/rust-num/num-bigint) compiled to
+WebAssembly, and (3) VTS with a snipped of WebAssembly. For larger
+bitlengths VTS is faster than num-bigint.
 
 ![Benchmarking graph for VTS, JSBN, and num-bigint compiled to
  WebAssembly.](vts_jsbn_num-bigint.jpg)
