@@ -24,30 +24,17 @@ JSBN lacks proper documentation. Thus, although our class is a trivial
 wrapper we rely on users to give feedback if we implemented anything
 differently.
 
-**Benchmarks.** Modular exponentiation is the most relevant
-operation. The relative running times of this library in pure
-TypeScript (TS) and with WebAssembly (TSW), respectively, compared to
-JSBN for standard prime moduli are given below for Node.
+*Benchmarks.* Modular exponentiation is the most relevant
+operation. The following graph summarizes the running times of modular
+expoentiation in Node on our machine for: (1)
+[JSBN](http://www-cs-students.stanford.edu/~tjw/jsbn), (2) pure
+TypeScript VTS, (3) VTS with a snipped of WebAssembly, and (4) the
+Rust library [num-bigint](https://github.com/rust-num/num-bigint)
+compiled to WebAssembly. For larger bitlengths VTS is faster than
+num-bigint.
 
-| Group | TS/JSBN | TSW/JSBN |
-|:--|--:|--:|
-| modp768 | 1.24 | 0.93 |
-| modp1024 | 1.18 | 0.68 |
-| modp1536 | 0.91 | 0.42 |
-| modp2048 | 0.81 | 0.34 |
-| modp3072 | 0.77 | 0.35 |
-| modp4096 | 0.75 | 0.34 |
-| modp6144 | 0.71 | 0.31 |
-| modp8192 | 0.69 | 0.29 |
-
-These results should be interpreted with care due to how different
-engines optimize code and how the code executes on different
-platforms. They could be summarized to say that one may expect a
-speedup of at least 20% with pure TypeScript and 65% with
-WebAssembly. It seems we also get a speedup of 10%-15% relative
-[`num_bigint`](https://docs.rs/num-bigint/latest/num_bigint) compiled
-to WASM, but this is an even less robust comparison that may be due to
-a number of factors. Please inform us if you perform benchmarks!
+![Benchmarking graph for VTS, JSBN, and num-bigint compiled to
+ WebAssembly.](benchmarking/compiled/vts_jsbn_num-bigint.jpg)
 
 ## Prerequisites
 
