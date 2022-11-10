@@ -34,7 +34,7 @@ compiled to WebAssembly. For larger bitlengths VTS is faster than
 num-bigint.
 
 ![Benchmarking graph for VTS, JSBN, and num-bigint compiled to
- WebAssembly.](benchmarking/compiled/vts_jsbn_num-bigint.jpg)
+ WebAssembly.](vts_jsbn_num-bigint.jpg)
 
 ## Prerequisites
 
